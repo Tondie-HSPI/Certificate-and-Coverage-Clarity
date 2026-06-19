@@ -1,54 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-# Coverage Clarity Frontend
+# Compliance Explained
+# Coverage Clarity
 
-Next.js frontend for Coverage Clarity, an AI-assisted Certificate of Insurance review support tool.
+AI-powered compliance assistant that transforms contracts and Certificates of Insurance (COIs) into structured, actionable insurance requirements.
+A simple AI helper for insurance certificates.
 
-## Getting Started
+---
+A Certificate of Insurance is a proof-of-coverage document. It is the short form people ask for when they need to see whether a business appears to carry the insurance a contract requires.
 
-First, run the development server:
-Run the development server:
+## Overview
+Upload a contract, Certificate of Insurance, or insurance requirements document. Coverage Clarity turns the insurance language into a clear checklist of what is required, what may be missing, and what needs human review.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Compliance Explained is a document intelligence system designed to help users understand complex insurance requirements quickly and accurately.
+A Certificate of Insurance is often shortened to COI, but this project uses plain language so people outside insurance can understand it too.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Users can upload contracts, COIs, or policy documents and receive:
+Coverage Clarity is **decision support only**. It is not legal advice, insurance advice, or a final coverage decision.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Structured compliance checklists  
+- Extracted insurance requirements  
+- Confidence scoring  
+- Source-backed explanations  
+- Recommended next steps  
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This is not a generic chatbot — it is a **compliance interpretation engine**.
+## Overview
 
-## Learn More
+Coverage Clarity helps reviewers understand Certificate of Insurance requirements by showing:
 
-To learn more about Next.js, take a look at the following resources:
+- What the certificate is being checked against
+- Coverage types
+- Required limits
+- Endorsements or special wording
+- Missing or unclear items
+- Confidence scoring
+- Source text from the document
+- Plain-English explanations
+- Recommended next steps for human review
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-Open [http://localhost:3000](http://localhost:3000) to use the app.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-## Purpose
+## Core Capabilities
 
-## Deploy on Vercel
-The frontend uploads a contract, Certificate of Insurance, or insurance requirements document and renders the backend response as a checklist-style review view with:
+### Document Parsing
+- Supports contracts, COIs, and policy documents  
+- Extracts structured text and sections from uploaded files  
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-- Coverage type
-- Requirement type
-- Limit
-- Endorsement
-- Status
-- Confidence score
-- Source text
-- Plain-English explanation
-- Recommended action
-- Risk summary
+### Requirement Extraction
+Identifies key insurance requirements such as:
+- General Liability limits  
+- Workers Compensation  
+- Commercial Auto  
+- Umbrella / Excess coverage  
+- Additional Insured  
+- Waiver of Subrogation  
+- Primary & Non-Contributory wording  
+- Hired & Non-Owned Auto  
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-Coverage Clarity is decision support only. It does not provide legal, insurance, or compliance advice.
+### Compliance Checklist
+- Converts extracted requirements into actionable checklist items  
+- Status: `met`, `missing`, or `needs_review`  
+- Includes confidence scoring and reasoning  
+Identifies insurance requirements such as:
+- General Liability limits
+- Workers Compensation
+- Commercial Auto
+- Umbrella / Excess coverage
+- Professional Liability
+- Cyber Liability
+- Additional Insured language
+- Waiver of Subrogation
+- Primary & Non-Contributory wording
+- Hired & Non-Owned Auto language
+
+### Coverage Checklist
+- Converts extracted requirements into checklist-style review items
+- Preserves existing fields: `type`, `limit`, `status`, and `confidence`
+- Adds traceability fields such as source excerpts and plain-English explanations
+- Uses statuses: `met`, `missing`, or `needs_review`
+
+### Decision Support
+- Highlights missing requirements  
+- Suggests next steps  
+- Provides source-backed explanations  
+
+### Document Chat (Planned)
+- Ask questions about uploaded documents  
+- Responses grounded in document content  
+- Highlights missing or unclear requirements
+- Suggests recommended follow-up actions
+- Summarizes risk level
+- Keeps outputs structured and auditable
+
+---
+
+## Architecture (MVP)
+
+## Why This Helps

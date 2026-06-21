@@ -33,6 +33,17 @@ a more complete extraction, comparison, and decision-support workflow built end 
 - Management liability lines, including D&O, EPLI, Fiduciary, Crime/Fidelity, and Cyber Liability
 - Cyber / Tech E&O component checks, including privacy, network security, breach response, PCI/payment card, media liability, ransomware/extortion, dependent business interruption, computer fraud, social engineering, and regulatory defense signals
 
+## Architecture (RECKON-Aligned)
+
+Coverage Clarity's backend follows the RECKON framework I use across my AI orchestration projects:
+
+- **R — Request**: `input_layer/intake.py` builds initial state from the incoming request.
+- **E — Extraction**: `extraction_layer/insurance_parser.py` parses contracts, COIs, and policies.
+- **C — Context**: `obligation_modeling/modeler.py` builds structured obligations from extracted content.
+- **K — Knowledge**: `governance/constraints.py` and `rules/*.yaml` apply domain rules and refusal logic.
+- **O — Orchestration**: `state_engine/engine.py` assigns state across the review pipeline.
+- **N — Next Best Action**: `decision_support/advisor.py` generates explanations and recommended next steps per item.
+
 ## Backend API
 
 Run locally:

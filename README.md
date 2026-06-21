@@ -85,6 +85,15 @@ docs/LOVABLE_FRONTEND_API.md
 - AWS / LeapStacks notes: `docs/AWS_LEAPSTACKS_LAUNCH.md`
 - Lovable frontend contract: `docs/LOVABLE_FRONTEND_API.md`
 
+## Future Improvements
+
+- **Pay-ready flag**: a single top-level `pay_ready: true/false` field summarizing whether
+  all required obligations are satisfied, alongside the detailed review-item list, so a CSR
+  or business owner can get a yes/no answer before reviewing details.
+- **Starter checklist mode**: let a user pick a business type (e.g. food truck, landscaper,
+  photographer) and get a plain-English starter checklist of typical licenses, contracts, and
+  insurance needs, for users who don't have a contract or COI to upload yet.
+
 ## Boundary
 
 Coverage Clarity is decision support only. It does not certify compliance, confirm coverage, bind insurance, or provide legal or insurance advice. All outputs require human review.

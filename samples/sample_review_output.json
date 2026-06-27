@@ -1,0 +1,43 @@
+{
+  "workflow_id": "sample-coverage-clarity-review",
+  "analysis_mode": "comparison",
+  "overall_confidence": 0.84,
+  "items": [
+    {
+      "obligation_type": "General Liability",
+      "requirement": "$1,000,000 each occurrence / $2,000,000 aggregate",
+      "evidence_requirement": "$1,000,000 each occurrence / $2,000,000 aggregate",
+      "state": "met",
+      "source": "sample-contract.txt vs sample-coi.txt",
+      "explanation": "Contract requirement is supported by uploaded COI or policy evidence.",
+      "next_action": "No immediate action needed."
+    },
+    {
+      "obligation_type": "Additional Insured",
+      "requirement": "Owner and property manager as Additional Insured on a primary and noncontributory basis",
+      "evidence_requirement": "Description box references Additional Insured; endorsement not attached",
+      "state": "unmet",
+      "source": "sample-contract.txt vs sample-coi.txt",
+      "explanation": "Contract requires AI wording and supporting endorsement evidence, but evidence does not confirm the endorsement.",
+      "next_action": "Request the matching endorsement or corrected certificate."
+    },
+    {
+      "obligation_type": "Waiver of Subrogation",
+      "requirement": "Waiver of Subrogation required where permitted by law",
+      "evidence_requirement": null,
+      "state": "missing",
+      "source": "sample-contract.txt",
+      "explanation": "The contract requires this item, but no matching COI or policy evidence was found.",
+      "next_action": "Request supporting COI or policy evidence."
+    }
+  ],
+  "email_draft": {
+    "recipient": "",
+    "subject": "Request for revised COI and supporting endorsements",
+    "requires_human_review": true,
+    "requested_items": [
+      "Additional Insured: correct or provide supporting evidence for Owner and property manager as Additional Insured on a primary and noncontributory basis.",
+      "Waiver of Subrogation: provide evidence meeting the contract requirement."
+    ]
+  }
+}

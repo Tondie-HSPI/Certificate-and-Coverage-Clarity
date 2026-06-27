@@ -1,6 +1,10 @@
-# Coverage Clarity
+﻿# Coverage Clarity
 
-**A decision-support prototype for commercial insurance intake and review.**
+**A decision-support prototype for commercial insurance intake, COI review, and evidence comparison.**
+
+Coverage Clarity is an independent portfolio project built with mock business scenarios and sample insurance documents. It does not use employer data, client data, proprietary workflows, carrier-confidential information, or internal company tools.
+
+The project demonstrates how AI-assisted review can support commercial insurance, compliance, and service workflows without replacing professional judgment. It organizes requirements, compares evidence, highlights gaps, and drafts review-ready follow-up language.
 
 ## Overview
 
@@ -10,89 +14,60 @@ The application supports commercial insurance professionals working through cont
 
 The goal is not to replace professional judgment. The goal is to make fragmented, review-heavy information easier to inspect, document, and hand off.
 
-## Operational Pain Point
+## Business Problem
 
-Commercial insurance intake is often context-dependent and review-heavy:
+Commercial insurance review often requires a person to compare a contract, Certificate of Insurance, policy excerpts, endorsements, and email notes. The work is detail-heavy and easy to slow down:
 
 - Business information may arrive through contracts, COIs, policies, emails, notes, or endorsement evidence.
-- Business descriptions do not always map cleanly to carrier-facing questions or coverage requirements.
-- Review quality depends on context, judgment, source evidence, and careful interpretation.
-- Poorly structured intake can create rework, delays, unclear assumptions, and inconsistent documentation.
-- Certificate wording, additional insured requirements, waivers of subrogation, and coverage limits often require human review before action.
+- Contract requirements may be spread across multiple paragraphs.
+- COIs may show limits but not prove endorsement wording.
+- Additional insured and waiver of subrogation wording often needs review beyond the certificate.
+- Missing information can delay handoffs between producers, CSRs, account managers, brokers, and carriers.
+- Reviewers need a clear audit trail showing what was found, what was not found, and what still needs human confirmation.
 
-Coverage Clarity is designed around that operational reality: the work is not simply "extract text." The work is organizing uncertainty so a reviewer can make a clearer decision.
+Coverage Clarity is designed around that operational reality: the work is not simply extract text. The work is organizing uncertainty so a reviewer can make a clearer decision.
 
 ## Decision-Support Approach
 
-Coverage Clarity addresses the pain point by turning scattered insurance information into structured, reviewable outputs:
+Coverage Clarity converts document text into structured review outputs:
 
-- Captures business and document context in a structured way.
-- Extracts obligations and requirements from contracts, COIs, policies, and endorsements.
-- Maps intake information to relevant insurance review questions.
-- Compares requirements against uploaded evidence.
-- Flags uncertain, incomplete, or unsupported information.
-- Makes assumptions and confidence visible.
-- Supports more consistent documentation and clearer handoffs.
-- Produces a broker/agent/carrier follow-up draft for human review.
+1. Intake contracts, COIs, policies, endorsement evidence, or notes.
+2. Extract insurance requirements and evidence signals.
+3. Compare required coverage against available evidence.
+4. Flag missing, unmet, unclear, or review-needed items.
+5. Generate a broker/agent/carrier email draft requesting corrected evidence.
+6. Keep final decisions human-reviewed and auditable.
 
-## Human-in-the-Loop Design
+## What This Demonstrates
 
-Coverage Clarity does not silently autofill forms, certify compliance, confirm coverage, bind insurance, or replace an insurance professional.
+- Applied AI workflow design for regulated or review-heavy operations
+- Commercial insurance process understanding
+- Deterministic rules for insurance requirement checks
+- Structured extraction and comparison logic
+- Source-aware outputs with explanation text
+- Human-in-the-loop review boundaries
+- Governance-aware AI implementation
+- FastAPI backend design with upload and JSON endpoints
+- Portfolio-ready documentation, samples, deployment notes, and test coverage
 
-The goal is not to automate judgment away. The goal is to reduce cognitive load, surface uncertainty, and give reviewers a clearer packet of information to evaluate.
+## System Architecture
 
-Human review is expected when requirements are ambiguous, evidence is incomplete, endorsement wording needs interpretation, or an output may affect a carrier-facing or insured-facing action.
+```mermaid
+flowchart LR
+    A["Contract, COI, policy, endorsement, or notes"] --> B["Input Layer"]
+    B --> C["Extraction Layer"]
+    C --> D["Obligation Modeling"]
+    D --> E["Validation Layer"]
+    E --> F["Comparison Layer"]
+    F --> G["Decision Support"]
+    G --> H["Governance Checks"]
+    H --> I["Structured Review Output"]
+    I --> J["Email Draft + Human Review"]
+```
 
-## Governance and Auditability
+## RECKON-Aligned Architecture
 
-The project is designed to preserve trust and reviewability through:
-
-- Confidence indicators for extracted or compared items.
-- Source/context visibility for review decisions.
-- Review checkpoints before relying on generated outputs.
-- Assumption tracking when evidence is incomplete or unclear.
-- Clear separation between generated suggestions and final human-reviewed outputs.
-- Refusal and boundary logic for unsupported or high-risk interpretations.
-
-## Background
-
-This started as a vision from my Applied AI & Business Analytics program: insurance and compliance teams spend too much time manually decoding contracts, COIs, and policies to figure out what's actually required and what's missing. I spent months exploring the problem, taking notes at conferences, and learning the tools, before building Compliance Explained as a first working prototype. Coverage Clarity is where that thinking landed: a more complete extraction, comparison, and decision-support workflow built end to end.
-
-## Skills Demonstrated
-
-- Operational workflow analysis.
-- AI-assisted decision support.
-- Commercial insurance process understanding.
-- Human-in-the-loop system design.
-- Structured intake and data mapping.
-- Review queue and escalation logic.
-- Governance-aware AI implementation.
-- Full-stack prototype development.
-- Documentation for regulated or high-friction workflows.
-
-## Product Shape
-
-- Frontend: Lovable or the existing Next.js app shell in this repo.
-- Backend: FastAPI COI review API in `backend/app`.
-- Deployment target: AWS through LeapStacks2 or another container-friendly path.
-
-## Core Workflow
-
-`Contract + COI / policy / endorsements -> Extract -> Compare -> Review -> Email draft`
-
-## Current Checks
-
-- General Liability limits.
-- Umbrella / Excess limits.
-- Additional Insured parties and endorsement signals.
-- Waiver of Subrogation parties and endorsement signals.
-- Certificate Holder and additional coverage notes.
-- Management liability lines, including D&O, EPLI, Fiduciary, Crime/Fidelity, and Cyber Liability.
-- Cyber / Tech E&O component checks, including privacy, network security, breach response, PCI/payment card, media liability, ransomware/extortion, dependent business interruption, computer fraud, social engineering, and regulatory defense signals.
-
-## Architecture (RECKON-Aligned)
-
-Coverage Clarity's backend follows the RECKON framework I use across my AI orchestration projects:
+Coverage Clarity's backend follows the RECKON framework used across the AI orchestration portfolio:
 
 - **R - Request**: `input_layer/intake.py` builds initial state from the incoming request.
 - **E - Extraction**: `extraction_layer/insurance_parser.py` parses contracts, COIs, and policies.
@@ -101,46 +76,153 @@ Coverage Clarity's backend follows the RECKON framework I use across my AI orche
 - **O - Orchestration**: `state_engine/engine.py` assigns state across the review pipeline.
 - **N - Next Best Action**: `decision_support/advisor.py` generates explanations and recommended next steps per item.
 
-## Backend API
+## Current Checks
 
-Run locally:
+- General Liability limits
+- Umbrella / Excess limits
+- Additional Insured parties and endorsement signals
+- Waiver of Subrogation parties and endorsement signals
+- Certificate Holder and additional coverage notes
+- Management liability lines, including D&O, EPLI, Fiduciary, Crime/Fidelity, and Cyber Liability
+- Cyber / Tech E&O components, including privacy, network security, breach response, PCI/payment card, media liability, ransomware/extortion, dependent business interruption, computer fraud, social engineering, and regulatory defense signals
+
+## Sample Scenario
+
+Sample contract requirement:
+
+```text
+Contractor must provide Commercial General Liability with $1,000,000 each occurrence and
+$2,000,000 aggregate. Owner and property manager must be named as Additional Insured on
+a primary and noncontributory basis. Waiver of Subrogation is required where permitted by law.
+```
+
+Sample evidence:
+
+```text
+Certificate shows General Liability $1,000,000 each occurrence / $2,000,000 aggregate.
+Description box references Additional Insured, but no endorsement form is attached.
+Waiver of Subrogation is not shown.
+```
+
+Sample output:
+
+```json
+{
+  "analysis_mode": "comparison",
+  "overall_confidence": 0.84,
+  "items": [
+    {
+      "obligation_type": "General Liability",
+      "state": "met",
+      "explanation": "Contract requirement is supported by uploaded COI or policy evidence.",
+      "next_action": "No immediate action needed."
+    },
+    {
+      "obligation_type": "Additional Insured",
+      "state": "unmet",
+      "explanation": "Certificate wording references AI, but supporting endorsement evidence is not confirmed.",
+      "next_action": "Request the matching endorsement or corrected certificate. Human review required before carrier-facing use."
+    },
+    {
+      "obligation_type": "Waiver of Subrogation",
+      "state": "missing",
+      "explanation": "The contract requires this item, but no matching COI or policy evidence was found.",
+      "next_action": "Request supporting COI or policy evidence. Human review required before carrier-facing use."
+    }
+  ],
+  "email_draft": {
+    "subject": "Request for revised COI and supporting endorsements",
+    "requires_human_review": true
+  }
+}
+```
+
+## Repository Structure
+
+```text
+app/                         Next.js portfolio demo shell
+backend/app/                 FastAPI backend application
+backend/app/api/             API route definitions
+backend/app/comparison_layer Evidence comparison logic
+backend/app/extraction_layer Document parsing and extraction
+backend/app/governance       Human-review and output constraints
+backend/app/obligation_modeling Requirement modeling logic
+backend/app/rules            YAML rule configuration
+backend/tests/               Backend unit tests
+docs/                        AWS, frontend API, governance, and publishing notes
+samples/                     Synthetic input and output examples
+```
+
+## Run Locally
+
+Backend:
 
 ```powershell
-.\start-backend.ps1
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8010
 ```
 
-Default local API:
+Frontend:
 
-```text
-http://127.0.0.1:8010
+```powershell
+npm install
+npm run dev
 ```
 
-Health check:
+API health check:
 
 ```text
-GET /health
+GET http://127.0.0.1:8010/health
 ```
 
-Endpoints:
-
-- `POST /api/coi-review` accepts pasted/structured text documents.
-- `POST /api/coi-review-upload` accepts PDF, text, and Markdown uploads.
-- Legacy aliases are also available: `POST /api/analyze` and `POST /api/analyze-upload`.
-
-## Frontend
-
-The existing Next.js app can remain as a project shell, but the production frontend may be built in Lovable. Use the API contract in:
+Review endpoint:
 
 ```text
-docs/LOVABLE_FRONTEND_API.md
+POST http://127.0.0.1:8010/api/coi-review
+```
+
+Upload endpoint:
+
+```text
+POST http://127.0.0.1:8010/api/coi-review-upload
+```
+
+## Testing
+
+```powershell
+cd backend
+pytest
 ```
 
 ## Deployment
 
-- Dockerfile: `backend/Dockerfile`.
-- Container port: `8080`.
-- AWS / LeapStacks notes: `docs/AWS_LEAPSTACKS_LAUNCH.md`.
-- Lovable frontend contract: `docs/LOVABLE_FRONTEND_API.md`.
+- Backend Dockerfile: `backend/Dockerfile`
+- Container port: `8080`
+- AWS / LeapStacks notes: `docs/AWS_LEAPSTACKS_LAUNCH.md`
+- Lovable frontend contract: `docs/LOVABLE_FRONTEND_API.md`
+
+## Governance Model
+
+Coverage Clarity follows a layered governance model based on separation of responsibility:
+
+- Generative reasoning drafts explanations and review language.
+- Application logic controls validation, thresholds, routing, refusal, and state management.
+- Deterministic rules handle requirement checks and evidence comparison.
+- Source grounding supports review and auditability.
+- Humans retain final accountability for carrier-facing or coverage-related decisions.
+
+See `docs/governance_model.md` for the full governance model.
+
+## Human Review Boundary
+
+Coverage Clarity does not silently autofill forms, certify compliance, confirm coverage, bind insurance, or replace an insurance professional.
+
+The goal is not to automate judgment away. The goal is to reduce cognitive load, surface uncertainty, and give reviewers a clearer packet of information to evaluate.
+
+Coverage Clarity is decision support only. It does not provide legal or insurance advice. All outputs require review by a qualified human before use.
 
 ## Suggested Portfolio Framing
 
@@ -148,9 +230,9 @@ This project is part of a broader portfolio focused on decision-support systems 
 
 ## Future Improvements
 
-- **Pay-ready flag**: a single top-level `pay_ready: true/false` field summarizing whether all required obligations are satisfied, alongside the detailed review-item list, so a CSR or business owner can get a yes/no answer before reviewing details.
-- **Starter checklist mode**: let a user pick a business type (e.g. food truck, landscaper, photographer) and get a plain-English starter checklist of typical licenses, contracts, and insurance needs, for users who don't have a contract or COI to upload yet.
-
-## Boundary
-
-Coverage Clarity is decision support only. It does not certify compliance, confirm coverage, bind insurance, or provide legal or insurance advice. All outputs require human review.
+- Add field-level source citations in the UI
+- Add reviewer approve/reject controls and audit export
+- Add more synthetic sample packets for contractor, restaurant, landlord, and technology services risks
+- Add confidence scoring by requirement category
+- Add downloadable review packets for handoff to account teams
+- Add a starter checklist mode for users who do not yet have a contract or COI to upload

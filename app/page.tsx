@@ -1,65 +1,125 @@
-import Image from "next/image";
+const metrics = [
+  { label: "Review states", value: "Met / Unmet / Missing" },
+  { label: "Evidence types", value: "Contract, COI, Policy, Endorsement" },
+  { label: "Human review", value: "Required for all outputs" },
+  { label: "Backend", value: "FastAPI + deterministic rules" }
+];
+
+const workflow = [
+  "Upload or paste contract and evidence text",
+  "Extract requirements, limits, parties, and endorsement signals",
+  "Compare required coverage against available evidence",
+  "Generate review items, gap flags, and an email draft"
+];
+
+const reviewItems = [
+  {
+    type: "General Liability",
+    status: "Met",
+    detail: "$1M occurrence / $2M aggregate shown in evidence.",
+    action: "No immediate action needed."
+  },
+  {
+    type: "Additional Insured",
+    status: "Needs review",
+    detail: "Certificate wording references AI, but endorsement evidence is not confirmed.",
+    action: "Request supporting endorsement or corrected certificate."
+  },
+  {
+    type: "Waiver of Subrogation",
+    status: "Missing",
+    detail: "Contract requires WOS; evidence did not show matching support.",
+    action: "Request revised COI or supporting endorsement evidence."
+  }
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="appShell">
+      <section className="hero">
+        <div>
+          <p className="eyebrow">Commercial insurance decision support</p>
+          <h1>Coverage Clarity</h1>
+          <p className="heroCopy">
+            AI-assisted review for contracts, COIs, policies, and endorsement evidence. The system
+            structures review items, identifies gaps, and prepares follow-up language while keeping
+            every output human-reviewed.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="heroPanel">
+          <span>Prototype boundary</span>
+          <strong>Decision support only</strong>
+          <p>No coverage confirmation, binding, legal advice, or automated approval.</p>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="metricGrid" aria-label="Project metrics">
+        {metrics.map((metric) => (
+          <article key={metric.label} className="metricCard">
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+          </article>
+        ))}
+      </section>
+
+      <section className="twoColumn">
+        <article className="panel">
+          <p className="eyebrow">Workflow</p>
+          <h2>From requirement text to review-ready output</h2>
+          <ol className="steps">
+            {workflow.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </article>
+
+        <article className="panel">
+          <p className="eyebrow">Why it matters</p>
+          <h2>Built for review-heavy operations</h2>
+          <p>
+            Insurance document review often depends on details that are easy to miss: limits,
+            parties, endorsement wording, certificate holder language, and whether evidence actually
+            supports the contract requirement.
+          </p>
+          <p>
+            Coverage Clarity turns those details into structured, auditable outputs so a reviewer
+            can see what was found, what is missing, and what needs follow-up.
+          </p>
+        </article>
+      </section>
+
+      <section className="panel outputPanel">
+        <div className="sectionHeader">
+          <div>
+            <p className="eyebrow">Sample output</p>
+            <h2>Human-reviewed decision items</h2>
+          </div>
+          <span className="badge">Synthetic sample</span>
+        </div>
+        <div className="reviewTable">
+          {reviewItems.map((item) => (
+            <article key={item.type} className="reviewRow">
+              <div>
+                <strong>{item.type}</strong>
+                <span className={`status ${item.status.replace(" ", "").toLowerCase()}`}>
+                  {item.status}
+                </span>
+              </div>
+              <p>{item.detail}</p>
+              <p className="action">{item.action}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel disclaimer">
+        <p className="eyebrow">Human-in-the-loop boundary</p>
+        <p>
+          This is an independent portfolio prototype using mock data and synthetic examples. It does
+          not include employer data, client data, proprietary workflows, or internal company tools.
+          Outputs are designed to support review, not replace professional judgment.
+        </p>
+      </section>
+    </main>
   );
 }

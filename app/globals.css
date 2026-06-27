@@ -1,26 +1,276 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f7fb;
+  --foreground: #111827;
+  --panel: #ffffff;
+  --muted: #5f6f85;
+  --line: #d9e2ef;
+  --navy: #102033;
+  --blue: #2563eb;
+  --teal: #0f766e;
+  --amber: #b7791f;
+  --red: #b91c1c;
+  --green: #047857;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.appShell {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: end;
+  border-radius: 8px;
+  padding: 34px;
+  background: linear-gradient(135deg, #102033, #1f4fd8 58%, #0f766e);
+  color: #ffffff;
+  box-shadow: 0 24px 70px rgba(16, 32, 51, 0.22);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hero .eyebrow {
+  color: #bfdbfe;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 14px;
+  font-size: clamp(2.4rem, 5vw, 4.7rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin-bottom: 14px;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.heroCopy {
+  max-width: 920px;
+  margin-bottom: 0;
+  color: #dbeafe;
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.heroPanel,
+.panel,
+.metricCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.heroPanel {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.16);
+  padding: 20px;
+}
+
+.heroPanel span,
+.heroPanel strong {
+  display: block;
+}
+
+.heroPanel span {
+  color: #bfdbfe;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.heroPanel strong {
+  margin: 8px 0;
+  font-size: 1.45rem;
+}
+
+.heroPanel p {
+  margin-bottom: 0;
+  color: #dbeafe;
+  line-height: 1.45;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.metricCard {
+  padding: 18px;
+}
+
+.metricCard span,
+.metricCard strong {
+  display: block;
+}
+
+.metricCard span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.metricCard strong {
+  margin-top: 8px;
+  color: var(--navy);
+  font-size: 1.08rem;
+}
+
+.twoColumn {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.panel {
+  padding: 24px;
+  box-shadow: 0 16px 36px rgba(16, 32, 51, 0.08);
+}
+
+.panel p {
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.steps {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 22px;
+}
+
+.steps li {
+  color: #253348;
+  line-height: 1.45;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: start;
+}
+
+.badge {
+  border-radius: 999px;
+  background: #ecfeff;
+  color: var(--teal);
+  padding: 7px 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.reviewTable {
+  display: grid;
+  gap: 10px;
+}
+
+.reviewRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.45fr) minmax(0, 1fr) minmax(0, 0.9fr);
+  gap: 14px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.reviewRow strong,
+.reviewRow span {
+  display: block;
+}
+
+.reviewRow p {
+  margin-bottom: 0;
+}
+
+.status {
+  margin-top: 7px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.status.met {
+  color: var(--green);
+}
+
+.status.needsreview {
+  color: var(--amber);
+}
+
+.status.missing {
+  color: var(--red);
+}
+
+.action {
+  color: #253348 !important;
+  font-weight: 700;
+}
+
+.disclaimer {
+  margin-top: 18px;
+}
+
+.disclaimer p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .appShell {
+    padding: 16px;
+  }
+
+  .hero,
+  .twoColumn,
+  .reviewRow {
+    grid-template-columns: 1fr;
+  }
+
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .panel {
+    padding: 20px;
+  }
 }

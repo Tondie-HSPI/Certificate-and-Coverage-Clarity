@@ -43,16 +43,22 @@ class GovernanceLayer:
         state["constraints_applied"] = [
             "input_guardrails",
             "deterministic_rules",
-            "retrieved_context",
-            "llm_interpretation"
+            "source_grounding",
+            "state_validation",
+            "human_review_boundary",
         ]
         return state
 
     def validate_outputs(self, items: list[DecisionItem]) -> list[DecisionItem]:
         output_rules = self.rules["output_validation"]
+        threshold_rules = self.rules.get("thresholds", {})
         required_fields = output_rules["required_decision_fields"]
         prohibited_phrases = [phrase.lower() for phrase in output_rules["prohibited_phrases"]]
         fallback_next_action = output_rules["fallback_next_action"]
+        mandatory_review_note = output_rules["mandatory_review_note"]
+        allowed_states = set(threshold_rules.get("allowed_decision_states", []))
+        review_states = set(threshold_rules.get("require_human_review_states", []))
+        require_grounding_for_met = threshold_rules.get("min_source_grounding_for_met_state", True)
 
         sanitized_items: list[DecisionItem] = []
         for item in items:
@@ -64,17 +70,31 @@ class GovernanceLayer:
                     detail=f"Decision output is missing required fields: {', '.join(missing_fields)}."
                 )
 
+            state = item.state
+            if allowed_states and state not in allowed_states:
+                state = "needs_review"
+
             explanation = item.explanation
             next_action = item.next_action
+
+            if require_grounding_for_met and state == "met" and not item.source_excerpt.strip():
+                state = "needs_review"
+                explanation = "Source grounding was not strong enough to treat this requirement as supported."
+                next_action = fallback_next_action
+
             for phrase in prohibited_phrases:
                 if phrase in explanation.lower():
                     explanation = "System explanation constrained by governance rules."
                 if phrase in next_action.lower():
                     next_action = fallback_next_action
 
+            if state in review_states and mandatory_review_note.lower() not in next_action.lower():
+                next_action = f"{next_action} {mandatory_review_note}"
+
             sanitized_items.append(
                 item.model_copy(
                     update={
+                        "state": state,
                         "explanation": explanation,
                         "next_action": next_action,
                     }

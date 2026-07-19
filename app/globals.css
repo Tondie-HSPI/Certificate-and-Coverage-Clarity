@@ -30,6 +30,22 @@ body {
   padding: 32px;
 }
 
+.demoNotice {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  border: 1px solid #fde68a;
+  border-left: 5px solid var(--amber);
+  border-radius: 8px;
+  background: #fffbeb;
+  padding: 16px 18px;
+}
+
+.demoNotice span {
+  color: #5f4b21;
+  line-height: 1.5;
+}
+
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -235,6 +251,61 @@ h2 {
   color: var(--red);
 }
 
+.status.unmet {
+  color: var(--red);
+}
+
+.resultLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 18px 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.resultLegend span {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.legendDot.met {
+  background: var(--green);
+}
+
+.legendDot.missing,
+.legendDot.unmet {
+  background: var(--red);
+}
+
+.legendDot.needsreview {
+  background: var(--amber);
+}
+
+.detailLabel {
+  margin: 0 0 4px;
+  color: var(--navy);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.reviewRow small {
+  color: var(--muted);
+}
+
 .action {
   color: #253348 !important;
   font-weight: 700;
@@ -242,6 +313,366 @@ h2 {
 
 .disclaimer {
   margin-top: 18px;
+}
+
+.intakePanel,
+.resultsPanel {
+  margin-top: 18px;
+}
+
+.uploadGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0 16px;
+}
+
+.pathChoices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.samplePack {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  margin-top: 24px;
+  border: 1px solid #c7d5e8;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 20px;
+}
+
+.samplePack h3 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-size: 1.08rem;
+}
+
+.samplePack p:last-child {
+  max-width: 650px;
+  margin-bottom: 0;
+}
+
+.sampleLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.sampleLinks a {
+  border: 1px solid #c7d5e8;
+  border-radius: 7px;
+  background: #ffffff;
+  color: var(--blue);
+  padding: 11px 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sampleLinks a:hover,
+.sampleLinks a:focus-visible {
+  border-color: var(--blue);
+  background: #eff6ff;
+}
+
+.pathChoice {
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 18px;
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pathChoice span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pathChoice:hover,
+.pathChoice:focus-visible {
+  border-color: var(--blue);
+}
+
+.pathChoice.selected {
+  border: 2px solid var(--blue);
+  background: #eff6ff;
+}
+
+.uploadCard {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  min-height: 210px;
+  align-content: center;
+  border: 2px dashed #b8c6da;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 24px;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.singleUpload {
+  margin-bottom: 16px;
+}
+
+.requirementsField {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.requirementsField span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.requirementsField textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #b8c6da;
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--foreground);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.requirementsField textarea:focus {
+  border-color: var(--blue);
+  outline: 3px solid #dbeafe;
+}
+
+.optionalDocument {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+  border: 1px dashed #b8c6da;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 20px;
+}
+
+.optionalHeading {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.optionalHeading > div {
+  display: grid;
+  gap: 5px;
+}
+
+.optionalDocument span {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.compactUpload {
+  position: relative;
+  display: block;
+  width: 100%;
+  border: 1px solid #c7d5e8;
+  border-radius: 7px;
+  background: #ffffff;
+  color: var(--blue);
+  padding: 13px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
+}
+
+.compactUpload:hover,
+.compactUpload:focus-within {
+  border-color: var(--blue);
+  background: #eff6ff;
+}
+
+.compactUpload.hasFile {
+  border-color: var(--teal);
+  background: #d1fae5;
+  color: var(--teal);
+}
+
+.compactUpload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.uploadCard:hover,
+.uploadCard:focus-within {
+  border-color: var(--blue);
+  background: #eff6ff;
+}
+
+.uploadCard.hasFile {
+  border-style: solid;
+  border-color: var(--teal);
+  background: #f0fdfa;
+}
+
+.uploadCard input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.uploadCard strong {
+  color: var(--navy);
+  font-size: 1.1rem;
+}
+
+.uploadCard small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.stepNumber {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--navy);
+  color: white;
+  font-weight: 800;
+}
+
+.fileName {
+  margin-top: 8px;
+  color: var(--blue);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.sourceConfirmation,
+.sourceRecord {
+  display: grid;
+  gap: 5px;
+  border-left: 4px solid var(--teal);
+  background: #f0fdfa;
+  padding: 14px 16px;
+}
+
+.sourceConfirmation span,
+.sourceRecord small {
+  color: var(--muted);
+}
+
+.primaryButton {
+  margin-top: 16px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--blue);
+  color: white;
+  padding: 13px 20px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.uploadLimit,
+.emailNote {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.errorMessage,
+.emptyResult {
+  margin-top: 18px;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.errorMessage {
+  background: #fef2f2;
+  color: var(--red);
+}
+
+.emptyResult {
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+}
+
+.emptyResult p {
+  margin: 6px 0 0;
+}
+
+.sourceRecord {
+  margin: 18px 0;
+}
+
+.emailDraft {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.sendChecklist {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+  border-left: 4px solid var(--amber);
+  background: #fffbeb;
+  padding: 14px 16px;
+}
+
+.sendChecklist span {
+  color: #5f4b21;
+}
+
+.emailFields {
+  display: grid;
+  gap: 14px;
+}
+
+.emailFields label {
+  display: grid;
+  gap: 7px;
+}
+
+.emailFields input,
+.emailFields textarea {
+  width: 100%;
+  border: 1px solid #b8c6da;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px 14px;
+  color: var(--foreground);
+  font: inherit;
+  line-height: 1.5;
+}
+
+.emailFields textarea {
+  resize: vertical;
+}
+
+.emailFields input:focus,
+.emailFields textarea:focus {
+  border-color: var(--blue);
+  outline: 3px solid #dbeafe;
 }
 
 .disclaimer p:last-child {
@@ -255,7 +686,9 @@ h2 {
 
   .hero,
   .twoColumn,
-  .reviewRow {
+  .reviewRow,
+  .uploadGrid,
+  .pathChoices {
     grid-template-columns: 1fr;
   }
 
@@ -265,6 +698,10 @@ h2 {
 }
 
 @media (max-width: 560px) {
+  .sectionHeader {
+    flex-direction: column;
+  }
+
   .metricGrid {
     grid-template-columns: 1fr;
   }
@@ -272,5 +709,10 @@ h2 {
   .hero,
   .panel {
     padding: 20px;
+  }
+
+  .samplePack {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

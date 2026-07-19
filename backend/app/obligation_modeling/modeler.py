@@ -320,6 +320,7 @@ class ObligationModeler:
 
     def _extract_certificate_holder(self, section_text: str) -> str | None:
         patterns = [
+            r"certificate holder name[:\s]+([^\n\r]+)",
             r"certificate holder[:\s]+([^\n\r]+)",
             r"holder[:\s]+([^\n\r]+)",
         ]

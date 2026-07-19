@@ -6,7 +6,7 @@ from app.extraction_layer.parser import ExtractionLayer
 from app.governance.constraints import GovernanceLayer
 from app.input_layer.intake import IntakeLayer
 from app.obligation_modeling.modeler import ObligationModeler
-from app.schemas.analysis import AnalysisResponse, IntakeRequest
+from app.schemas.analysis import AnalysisResponse, IntakeRequest, SourceOfTruth
 from app.services.coi_request_service import CoiRequestService
 from app.state_engine.engine import StateEngine
 from app.validation_layer.validator import ValidationLayer
@@ -31,14 +31,30 @@ class AnalysisService:
 
         parsed_documents = self.extraction.parse(payload.documents)
         obligations = self.modeler.build(parsed_documents)
+        source_of_truth = self._resolve_source_of_truth(payload)
+        if source_of_truth.selection_status == "selection_required":
+            analysis_mode = "source_selection_required"
+        if source_of_truth.document_id:
+            obligations = [
+                obligation
+                for obligation in obligations
+                if obligation.document_type != "contract"
+                or obligation.source == source_of_truth.document_name
+            ]
         validations = self.validation.validate(obligations)
-        if analysis_mode == "comparison":
+        if analysis_mode == "source_selection_required":
+            decision_items = []
+        elif analysis_mode == "comparison":
             decision_items = self.comparison.compare(obligations)
         else:
             decision_items = self.state_engine.assign(obligations, validations)
         decision_items = self.decision_support.refine(decision_items)
         decision_items = self.governance.validate_outputs(decision_items)
-        email_draft = self.coi_requests.build_email_draft(decision_items)
+        request_details = self.coi_requests.extract_request_details(
+            parsed_documents,
+            source_of_truth.document_name,
+        )
+        email_draft = self.coi_requests.build_email_draft(decision_items, **request_details)
 
         overall_confidence = round(
             sum(obligation.confidence for obligation in obligations) / len(obligations), 2
@@ -52,7 +68,38 @@ class AnalysisService:
             parsed_documents=parsed_documents,
             validations=validations,
             email_draft=email_draft,
+            source_of_truth=source_of_truth,
         )
+
+    def _resolve_source_of_truth(self, payload: IntakeRequest) -> SourceOfTruth:
+        selected = next(
+            (
+                document
+                for document in payload.documents
+                if document.document_id == payload.requirements_document_id
+                or document.file_name == payload.requirements_document_id
+            ),
+            None,
+        )
+        if selected:
+            return SourceOfTruth(
+                document_id=selected.document_id,
+                document_name=selected.file_name or selected.document_id,
+                selection_status="user_selected",
+            )
+
+        requirement_documents = [
+            document for document in payload.documents if document.document_type == "contract"
+        ]
+        if len(requirement_documents) == 1:
+            document = requirement_documents[0]
+            return SourceOfTruth(
+                document_id=document.document_id,
+                document_name=document.file_name or document.document_id,
+                selection_status="single_requirements_document",
+            )
+
+        return SourceOfTruth(selection_status="selection_required")
 
     def _determine_analysis_mode(self, payload: IntakeRequest) -> str:
         document_types = {document.document_type for document in payload.documents}

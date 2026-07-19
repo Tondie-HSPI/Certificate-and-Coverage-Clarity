@@ -14,6 +14,18 @@ class UploadDescriptor(BaseModel):
 class IntakeRequest(BaseModel):
     account_role: str = Field(..., description="contractor, broker, reviewer, or admin")
     documents: list[UploadDescriptor]
+    requirements_document_id: str | None = Field(
+        default=None,
+        description="User-selected document containing the certificate requester's requirements",
+    )
+
+
+class SourceOfTruth(BaseModel):
+    authority: str = "Certificate requester"
+    basis: str = "Requirements provided by the certificate requester"
+    document_id: str | None = None
+    document_name: str | None = None
+    selection_status: str
 
 
 class ParsedDocument(BaseModel):
@@ -77,6 +89,7 @@ class AnalysisResponse(BaseModel):
     parsed_documents: list[ParsedDocument]
     validations: list[ValidationResult]
     email_draft: EmailDraft | None = None
+    source_of_truth: SourceOfTruth
 
 
 class AnalysisJob(BaseModel):

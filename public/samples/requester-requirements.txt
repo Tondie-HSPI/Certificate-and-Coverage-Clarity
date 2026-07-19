@@ -1,0 +1,17 @@
+SYNTHETIC SAMPLE - REQUESTER INSURANCE REQUIREMENTS
+
+Certificate holder name: Northbridge Development LLC
+Certificate holder address: 100 Main Street, Rochester, NY 14604
+Special wording: None
+
+1. Commercial General Liability Insurance
+The contractor shall provide and maintain Commercial General Liability insurance with limits of not less than $1,000,000 each occurrence and $2,000,000 general aggregate. Coverage shall apply on an occurrence basis.
+
+2. Additional Insured
+Northbridge Development LLC shall be included as an additional insured on the Commercial General Liability policy by endorsement.
+
+3. Waiver of Subrogation
+The contractor shall provide a waiver of subrogation in favor of Northbridge Development LLC where permitted by law.
+
+4. Umbrella or Excess Liability
+The contractor shall provide Umbrella or Excess Liability coverage with a limit of not less than $5,000,000.

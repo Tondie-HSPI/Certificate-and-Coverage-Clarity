@@ -110,7 +110,7 @@ function extractCertificateDetails(text: string) {
 export async function POST(request: Request) {
   try {
     const form = await request.formData();
-    const files = form.getAll("files").filter((value): value is File => value instanceof File);
+    const files = form.getAll("files").filter((value): value is File => typeof value !== "string");
     if (!files.length || files.length > 2) {
       return NextResponse.json({ detail: "Upload one or two documents." }, { status: 400 });
     }

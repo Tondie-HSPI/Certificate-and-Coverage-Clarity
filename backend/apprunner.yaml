@@ -1,0 +1,19 @@
+version: 1.0
+runtime: python311
+build:
+  commands:
+    build:
+      - pip3 install --upgrade pip
+      - pip3 install -r requirements.txt
+run:
+  runtime-version: 3.11
+  command: uvicorn app.main:app --host 0.0.0.0 --port 8080
+  network:
+    port: 8080
+  env:
+    - name: COVERAGE_CLARITY_APP_NAME
+      value: Certificate & Coverage Clarity API
+    - name: COVERAGE_CLARITY_APP_ENV
+      value: production
+    - name: COVERAGE_CLARITY_CORS_ALLOW_ORIGINS
+      value: '["*"]'

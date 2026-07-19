@@ -26,15 +26,31 @@ def coi_review(payload: IntakeRequest) -> AnalysisResponse:
 async def analyze_upload(
     account_role: str = Form(...),
     files: list[UploadFile] = File(...),
-    document_types: list[str] | None = Form(default=None)
+    document_types: list[str] | None = Form(default=None),
+    requirements_document_id: str | None = Form(default=None),
+    requirements_text: str | None = Form(default=None),
 ) -> AnalysisResponse:
-    return await upload_service.run_uploads(account_role=account_role, files=files, document_types=document_types)
+    return await upload_service.run_uploads(
+        account_role=account_role,
+        files=files,
+        document_types=document_types,
+        requirements_document_id=requirements_document_id,
+        requirements_text=requirements_text,
+    )
 
 
 @router.post("/coi-review-upload", response_model=AnalysisResponse)
 async def coi_review_upload(
     account_role: str = Form(...),
     files: list[UploadFile] = File(...),
-    document_types: list[str] | None = Form(default=None)
+    document_types: list[str] | None = Form(default=None),
+    requirements_document_id: str | None = Form(default=None),
+    requirements_text: str | None = Form(default=None),
 ) -> AnalysisResponse:
-    return await upload_service.run_uploads(account_role=account_role, files=files, document_types=document_types)
+    return await upload_service.run_uploads(
+        account_role=account_role,
+        files=files,
+        document_types=document_types,
+        requirements_document_id=requirements_document_id,
+        requirements_text=requirements_text,
+    )

@@ -30,7 +30,7 @@ type AnalysisResponse = {
   } | null;
 };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8010";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
 const maxFileSize = 10 * 1024 * 1024;
 const allowedExtensions = [".pdf", ".docx", ".txt"];
 const stateLabels: Record<string, string> = {

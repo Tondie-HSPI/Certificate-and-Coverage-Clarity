@@ -28,6 +28,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Show GitHub OIDC identity claims
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESPONSE="$(curl --fail --silent --show-error \
+            --header "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com")"
+          TOKEN="$(jq --raw-output '.value' <<<"${RESPONSE}")"
+          PAYLOAD="$(cut --delimiter='.' --fields=2 <<<"${TOKEN}" | tr '_-' '/+')"
+          case $((${#PAYLOAD} % 4)) in
+            2) PAYLOAD="${PAYLOAD}==" ;;
+            3) PAYLOAD="${PAYLOAD}=" ;;
+          esac
+          base64 --decode <<<"${PAYLOAD}" |
+            jq '{iss, aud, sub, repository, ref, job_workflow_ref}'
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:

@@ -1,0 +1,105 @@
+name: Deploy Lambda backend
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-lambda-backend.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: us-east-2
+  AWS_ACCOUNT_ID: "177712846877"
+  ECR_REPOSITORY: certificate-coverage-clarity-api
+  FUNCTION_NAME: certificate-coverage-clarity-api
+  DEPLOYMENT_ROLE_ARN: arn:aws:iam::177712846877:role/GitHubActionsCoverageClarityLambdaDeploy
+  EXECUTION_ROLE_ARN: arn:aws:iam::177712846877:role/CoverageClarityLambdaExecutionRole
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ env.DEPLOYMENT_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sign in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and publish Lambda image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile.lambda
+          push: true
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create or update Lambda function
+        shell: bash
+        run: |
+          set -euo pipefail
+          IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:${GITHUB_SHA}"
+          if aws lambda get-function --function-name "${FUNCTION_NAME}" >/dev/null 2>&1; then
+            aws lambda update-function-code \
+              --function-name "${FUNCTION_NAME}" \
+              --image-uri "${IMAGE_URI}" >/dev/null
+            aws lambda wait function-updated --function-name "${FUNCTION_NAME}"
+            aws lambda update-function-configuration \
+              --function-name "${FUNCTION_NAME}" \
+              --memory-size 2048 \
+              --timeout 300 \
+              --ephemeral-storage '{"Size": 2048}' \
+              --environment 'Variables={COVERAGE_CLARITY_APP_NAME="Certificate & Coverage Clarity API",COVERAGE_CLARITY_APP_ENV="production",COVERAGE_CLARITY_CORS_ALLOW_ORIGINS="[\"https://main.d2cm8nx2fbbm4a.amplifyapp.com\"]"}' >/dev/null
+          else
+            aws lambda create-function \
+              --function-name "${FUNCTION_NAME}" \
+              --package-type Image \
+              --code "ImageUri=${IMAGE_URI}" \
+              --role "${EXECUTION_ROLE_ARN}" \
+              --architectures x86_64 \
+              --memory-size 2048 \
+              --timeout 300 \
+              --ephemeral-storage '{"Size": 2048}' \
+              --environment 'Variables={COVERAGE_CLARITY_APP_NAME="Certificate & Coverage Clarity API",COVERAGE_CLARITY_APP_ENV="production",COVERAGE_CLARITY_CORS_ALLOW_ORIGINS="[\"https://main.d2cm8nx2fbbm4a.amplifyapp.com\"]"}' >/dev/null
+          fi
+          aws lambda wait function-active-v2 --function-name "${FUNCTION_NAME}"
+
+      - name: Create public HTTPS Function URL
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! aws lambda get-function-url-config --function-name "${FUNCTION_NAME}" >/dev/null 2>&1; then
+            aws lambda create-function-url-config \
+              --function-name "${FUNCTION_NAME}" \
+              --auth-type NONE \
+              --cors 'AllowOrigins=https://main.d2cm8nx2fbbm4a.amplifyapp.com,AllowMethods=GET,POST,AllowHeaders=content-type,MaxAge=3600' >/dev/null
+            aws lambda add-permission \
+              --function-name "${FUNCTION_NAME}" \
+              --statement-id FunctionUrlPublicAccess \
+              --action lambda:InvokeFunctionUrl \
+              --principal "*" \
+              --function-url-auth-type NONE >/dev/null
+          fi
+          aws lambda get-function-url-config \
+            --function-name "${FUNCTION_NAME}" \
+            --query FunctionUrl \
+            --output text

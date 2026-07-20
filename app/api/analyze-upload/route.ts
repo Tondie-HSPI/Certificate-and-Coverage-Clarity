@@ -155,7 +155,10 @@ export async function POST(request: Request) {
       source_of_truth: { basis: "Requirements provided by the certificate requester", document_name: requirementName },
       email_draft: { subject, body },
     });
-  } catch {
-    return NextResponse.json({ detail: "The document could not be analyzed." }, { status: 500 });
+  } catch (error) {
+    const detail = error instanceof Error
+      ? `The document could not be analyzed: ${error.message}`
+      : "The document could not be analyzed.";
+    return NextResponse.json({ detail }, { status: 500 });
   }
 }

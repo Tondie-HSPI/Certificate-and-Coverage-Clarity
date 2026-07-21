@@ -2,7 +2,9 @@
 
 **A decision-support prototype for commercial insurance intake, COI review, and evidence comparison.**
 
-Coverage Clarity is an independent portfolio project built with mock business scenarios and sample insurance documents. It does not use employer data, client data, proprietary workflows, carrier-confidential information, or internal company tools.
+Certificate & Coverage Clarity is an independent portfolio project built with mock business scenarios and sample insurance documents. It does not use employer data, client data, proprietary workflows, carrier-confidential information, or internal company tools.
+
+**Live AWS demonstration:** [main.d2cm8nx2fbbm4a.amplifyapp.com](https://main.d2cm8nx2fbbm4a.amplifyapp.com/)
 
 The project demonstrates how AI-assisted review can support commercial insurance, compliance, and service workflows without replacing professional judgment. It organizes requirements, compares evidence, highlights gaps, and drafts review-ready follow-up language.
 
@@ -49,6 +51,48 @@ Coverage Clarity converts document text into structured review outputs:
 - Governance-aware AI implementation
 - FastAPI backend design with upload and JSON endpoints
 - Portfolio-ready documentation, samples, deployment notes, and test coverage
+
+## Deployed AWS Architecture
+
+```mermaid
+flowchart LR
+    A["Visitor"] --> B["AWS Amplify and Next.js"]
+    B --> C["Lambda Function URL"]
+    C --> D["Containerized FastAPI on AWS Lambda"]
+    D --> E{"Readable embedded text?"}
+    E -->|Yes| F["pypdf or python-docx"]
+    E -->|No| G["Private encrypted S3 object"]
+    G --> H["Amazon Textract"]
+    H --> I["Immediate object deletion"]
+    F --> J["PyYAML rules and comparison"]
+    I --> J
+    J --> K["Review results and editable email draft"]
+```
+
+The frontend is deployed through AWS Amplify. The FastAPI backend runs as a container image in AWS Lambda using the AWS Lambda Web Adapter. GitHub Actions builds the image, publishes it to Amazon ECR, and updates the Lambda function. CloudFormation manages the private temporary S3 bucket and least-privilege Textract permissions.
+
+Image-based PDFs are stored only while Textract processes them. The application requests immediate deletion after processing, and a one-day S3 lifecycle rule provides backup cleanup. The public demonstration has no sign-in, so visitors are instructed to use public samples or de-identified documents only.
+
+## Technology Stack
+
+- **Frontend:** Next.js, React, TypeScript, AWS Amplify
+- **API:** FastAPI, Python, AWS Lambda, AWS Lambda Web Adapter
+- **Document processing:** pypdf, python-docx, Amazon Textract
+- **Rules and governance:** PyYAML, deterministic comparison logic, explicit human-review controls
+- **AWS infrastructure:** Amazon ECR, Amazon S3, AWS CloudFormation, CloudWatch
+- **Delivery and testing:** GitHub Actions, Docker, pytest, ESLint, Next.js production builds
+
+## Verified Deployment Results
+
+- 16 backend tests passing
+- Next.js production build and lint checks passing
+- Public sample comparison returns 94% document-reading confidence
+- Public sample correctly identifies General Liability, Additional Insured, Umbrella, and Certificate Holder evidence
+- Public sample correctly flags Waiver of Subrogation as missing
+- Human-review email draft generated successfully
+- Measured live response time: 5.86 seconds cold and 0.33 seconds warm
+
+Document-reading confidence measures how confidently the system read the uploaded files. It does not represent whether the coverage satisfies the requester requirements.
 
 ## System Architecture
 
@@ -109,7 +153,7 @@ Sample output:
 ```json
 {
   "analysis_mode": "comparison",
-  "overall_confidence": 0.84,
+  "overall_confidence": 0.94,
   "items": [
     {
       "obligation_type": "General Liability",
@@ -199,10 +243,11 @@ pytest
 
 ## Deployment
 
-- Backend Dockerfile: `backend/Dockerfile`
-- Container port: `8080`
-- AWS / LeapStacks notes: `docs/AWS_LEAPSTACKS_LAUNCH.md`
-- Lovable frontend contract: `docs/LOVABLE_FRONTEND_API.md`
+- Live frontend: `https://main.d2cm8nx2fbbm4a.amplifyapp.com/`
+- Lambda container definition: `backend/Dockerfile.lambda`
+- GitHub Actions deployment: `.github/workflows/deploy-lambda-backend.yml`
+- CloudFormation resources: `infrastructure/textract-resources.yaml`
+- AWS implementation notes: `docs/AWS_LEAPSTACKS_LAUNCH.md`
 
 ## Governance Model
 

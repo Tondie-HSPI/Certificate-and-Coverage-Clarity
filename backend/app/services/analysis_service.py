@@ -6,7 +6,7 @@ from app.extraction_layer.parser import ExtractionLayer
 from app.governance.constraints import GovernanceLayer
 from app.input_layer.intake import IntakeLayer
 from app.obligation_modeling.modeler import ObligationModeler
-from app.schemas.analysis import AnalysisResponse, DecisionItem, IntakeRequest, Obligation, SourceOfTruth
+from app.schemas.analysis import AnalysisResponse, IntakeRequest, ParsedDocument, SourceOfTruth
 from app.services.coi_request_service import CoiRequestService
 from app.state_engine.engine import StateEngine
 from app.validation_layer.validator import ValidationLayer
@@ -57,9 +57,7 @@ class AnalysisService:
         email_draft = self.coi_requests.build_email_draft(decision_items, **request_details)
 
         overall_confidence = self._calculate_overall_confidence(
-            obligations,
-            decision_items,
-            source_of_truth,
+            parsed_documents,
         )
 
         return AnalysisResponse(
@@ -75,53 +73,17 @@ class AnalysisService:
 
     def _calculate_overall_confidence(
         self,
-        obligations: list[Obligation],
-        decision_items: list[DecisionItem],
-        source_of_truth: SourceOfTruth,
+        parsed_documents: list[ParsedDocument],
     ) -> float:
-        """Score analysis quality without treating absent, irrelevant rules as failures."""
-        if source_of_truth.selection_status == "selection_required":
-            return 0.0
-
-        detected_requirements = [
-            obligation
-            for obligation in obligations
-            if obligation.document_type == "contract"
-            and obligation.confidence >= 0.5
-            and (
-                not source_of_truth.document_name
-                or obligation.source == source_of_truth.document_name
-            )
+        """Measure document-reading quality, not requirement satisfaction."""
+        confidence_values = [
+            document.extraction_confidence
+            for document in parsed_documents
+            if document.extraction_confidence > 0
         ]
-
-        # A coverage-only review has no requester-requirements document. In that mode,
-        # score the substantive fields that were actually extracted from the evidence.
-        score_basis = detected_requirements or [
-            obligation
-            for obligation in obligations
-            if obligation.confidence >= 0.5
-        ]
-        if not score_basis:
+        if not confidence_values:
             return 0.0
-
-        extraction_score = sum(item.confidence for item in score_basis) / len(score_basis)
-        source_bonus = {
-            "user_selected": 0.02,
-            "single_requirements_document": 0.01,
-        }.get(source_of_truth.selection_status, 0.0)
-
-        uncertain_states = {"needs_review", "unclear", "not_extracted"}
-        uncertain_count = sum(item.state in uncertain_states for item in decision_items)
-        uncertainty_penalty = (
-            0.2 * (uncertain_count / len(decision_items))
-            if decision_items
-            else 0.0
-        )
-
-        return round(
-            max(0.0, min(0.97, extraction_score + source_bonus - uncertainty_penalty)),
-            2,
-        )
+        return round(sum(confidence_values) / len(confidence_values), 2)
 
     def _resolve_source_of_truth(self, payload: IntakeRequest) -> SourceOfTruth:
         selected = next(

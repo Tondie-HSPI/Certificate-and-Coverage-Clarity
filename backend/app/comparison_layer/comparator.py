@@ -154,6 +154,12 @@ class ComparisonLayer:
         }
 
     def _extract_parties(self, text: str) -> set[str]:
+        organizations = re.findall(
+            r"\b[A-Z][A-Za-z0-9&.' -]{2,80}?\s+(?:LLC|L\.L\.C\.|Inc\.?|Corporation|Corp\.?|Company|Co\.?|LLP|LP)\b",
+            text,
+        )
+        if organizations:
+            return {organization.strip().lower() for organization in organizations}
         parties = [part.strip().lower() for part in text.split(",") if part.strip()]
         return set(parties)
 

@@ -171,10 +171,12 @@ export default function Home() {
       <section className="demoNotice" aria-label="Public demonstration notice">
         <strong>AWS-hosted public demonstration</strong>
         <span>
-          The site uses HTTPS, and AWS encrypts Lambda temporary storage. This application does
-          not save uploaded files to a database or S3 bucket. Because the public demo does not
-          require sign-in, use publicly available samples or de-identified documents only. Do not
-          upload confidential, personal, or client information. Every result requires human review.
+          The site uses HTTPS and encrypted AWS processing. Text-based files are read in Lambda
+          memory. Image-based PDFs may be placed briefly in a private, encrypted S3 bucket for
+          Amazon Textract and are deleted after processing. A one-day lifecycle rule provides backup
+          cleanup. The public demo does not require sign-in, so use publicly available samples or
+          de-identified documents only. Do not upload confidential, personal, or client information.
+          Every result requires human review.
         </span>
       </section>
 
@@ -370,12 +372,13 @@ export default function Home() {
 
           <div className="confidenceSummary">
             <div>
-              <span>Analysis confidence</span>
+              <span>Document reading confidence</span>
               <strong>{Math.round(result.overall_confidence * 100)}%</strong>
             </div>
             <p>
-              Based on requirement extraction, source selection, and whether the comparison contains
-              unclear findings. Insurance representative verification is still required.
+              This reflects how confidently the system read the uploaded documents. It does not mean
+              the coverage satisfies the requester&apos;s requirements. Insurance representative verification
+              is still required.
             </p>
           </div>
 

@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import HTTPException
 from fastapi import UploadFile
 
+from app.extraction_layer.insurance_parser import DocumentExtractionError
 from app.schemas.analysis import AnalysisResponse, IntakeRequest, UploadDescriptor
 from app.services.analysis_service import AnalysisService
 
@@ -70,7 +71,10 @@ class UploadAnalysisService:
             documents=documents,
             requirements_document_id=requirements_document_id,
         )
-        return self.analysis_service.run(payload)
+        try:
+            return self.analysis_service.run(payload)
+        except DocumentExtractionError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     def _infer_document_type(self, file_name: str) -> str:
         lowered = file_name.lower()

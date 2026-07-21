@@ -121,8 +121,8 @@ class ObligationModeler:
         for term in terms:
             negative_patterns = [
                 rf"\bno\s+{term}\b",
-                rf"\b{term}\s+(?:is|are)\s+not\b",
-                rf"\b{term}\s+(?:coverage\s+)?(?:is\s+)?not\s+(?:included|shown|required|provided)\b",
+                rf"\b{term}\s+(?:coverage\s+|endorsement\s+)?(?:is|are)\s+not\b",
+                rf"\b{term}\s+(?:coverage\s+|endorsement\s+)?(?:is\s+)?not\s+(?:included|shown|required|provided)\b",
                 rf"\bwithout\s+{term}\b",
             ]
             if any(re.search(pattern, section_text, re.IGNORECASE) for pattern in negative_patterns):
@@ -135,8 +135,10 @@ class ObligationModeler:
         for section in sections:
             confidence = 0.0
             for pattern in patterns:
-                if re.search(pattern, section, re.IGNORECASE):
-                    confidence = max(confidence, 0.86)
+                match = re.search(pattern, section, re.IGNORECASE)
+                if match:
+                    position_bonus = 0.05 * (1 - (match.start() / max(1, len(section))))
+                    confidence = max(confidence, 0.86 + position_bonus)
 
             if confidence == 0.0:
                 continue
@@ -296,27 +298,35 @@ class ObligationModeler:
         return None
 
     def _extract_limit(self, section_text: str, nearby_terms: list[str]) -> str | None:
-        money_matches = re.findall(r"\$[\d,]+(?:\.\d+)?\s*(?:million|thousand|m)?|\b\d+(?:\.\d+)?\s*million\b", section_text, re.IGNORECASE)
+        money_matches = list(re.finditer(
+            r"\$[\d,]+(?:\.\d+)?\s*(?:million|thousand|m)?|\b\d+(?:\.\d+)?\s*million\b",
+            section_text,
+            re.IGNORECASE,
+        ))
         if not money_matches:
             return None
 
-        lowered = section_text.lower()
         for term in nearby_terms:
-            term_index = lowered.find(term.lower())
-            if term_index == -1:
+            term_match = re.search(re.escape(term), section_text, re.IGNORECASE)
+            if term_match is None:
                 continue
-            later_matches = [
-                match for match in money_matches
-                if lowered.find(match.lower(), term_index) != -1
-            ]
-            if later_matches:
-                return later_matches[0]
+            closest = min(
+                money_matches,
+                key=lambda match: abs(match.start() - term_match.start()),
+            )
+            return closest.group(0)
 
-        return money_matches[0]
+        return money_matches[0].group(0)
 
     def _extract_parties(self, section_text: str) -> list[str]:
         party_patterns = OrderedDict(self.rules["parties"])
-        return [party for party, pattern in party_patterns.items() if re.search(pattern, section_text, re.IGNORECASE)]
+        parties = [party for party, pattern in party_patterns.items() if re.search(pattern, section_text, re.IGNORECASE)]
+        organization_pattern = r"\b[A-Z][A-Za-z0-9&.' -]{2,80}?\s+(?:LLC|L\.L\.C\.|Inc\.?|Corporation|Corp\.?|Company|Co\.?|LLP|LP)\b"
+        for organization in re.findall(organization_pattern, section_text):
+            cleaned = organization.strip()
+            if cleaned not in parties:
+                parties.append(cleaned)
+        return parties
 
     def _extract_certificate_holder(self, section_text: str) -> str | None:
         patterns = [

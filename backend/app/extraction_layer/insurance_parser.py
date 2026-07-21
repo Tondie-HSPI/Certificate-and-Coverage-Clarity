@@ -5,12 +5,17 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-from docling.datamodel.base_models import DocumentStream, InputFormat
-from docling.document_converter import DocumentConverter
+from docx import Document
+from pypdf import PdfReader
 
+from app.extraction_layer.textract_client import TextractClient, TextractExtractionError
 from app.schemas.analysis import ParsedDocument, UploadDescriptor
 
 logger = logging.getLogger(__name__)
+
+
+class DocumentExtractionError(ValueError):
+    """Raised when an uploaded document cannot produce trustworthy text."""
 
 SECTION_KEYWORDS = OrderedDict(
     {
@@ -34,7 +39,7 @@ SECTION_KEYWORDS = OrderedDict(
 
 class InsuranceDocumentParser:
     def __init__(self) -> None:
-        self.converter = DocumentConverter()
+        self.textract = TextractClient()
 
     def parse(self, documents: list[UploadDescriptor]) -> list[ParsedDocument]:
         parsed_documents: list[ParsedDocument] = []
@@ -47,6 +52,8 @@ class InsuranceDocumentParser:
 
             if suffix == ".pdf" and binary_payload is not None:
                 parsed = self._parse_pdf_bytes(binary_payload, document.document_id, file_name, document.document_type)
+            elif suffix == ".docx" and binary_payload is not None:
+                parsed = self._parse_docx_bytes(binary_payload, document.document_id, file_name, document.document_type)
             elif suffix in {".md", ".markdown"}:
                 parsed = self._parse_markdown(content, document.document_id, file_name, document.document_type)
             else:
@@ -64,40 +71,128 @@ class InsuranceDocumentParser:
         return parsed_documents
 
     def _parse_pdf_bytes(self, payload: bytes, document_id: str, file_name: str, document_type: str) -> ParsedDocument:
+        embedded_text, page_count = self._extract_embedded_pdf_text(payload)
+        if self._is_usable_text(embedded_text):
+            return ParsedDocument(
+                document_id=document_id,
+                document_type=document_type,
+                file_name=file_name,
+                markdown=embedded_text,
+                structured_json={
+                    "name": file_name,
+                    "format": "pdf",
+                    "page_count": page_count,
+                    "extraction_method": "embedded_pdf_text",
+                },
+                extracted_sections=[],
+                extraction_method="embedded_pdf_text",
+                extraction_confidence=self._score_text_quality(embedded_text, base=0.92),
+            )
+
         try:
-            stream = DocumentStream(name=file_name, stream=BytesIO(payload))
-            result = self.converter.convert(stream)
-            markdown = result.document.export_to_markdown()
-            structured_json = result.document.export_to_dict()
-        except Exception:
-            markdown = payload.decode("utf-8", errors="ignore")
-            structured_json = {"name": file_name, "format": "pdf-fallback"}
+            result = self.textract.analyze_pdf(payload, file_name)
+        except TextractExtractionError as exc:
+            logger.exception("PDF extraction failed for %s", file_name)
+            raise DocumentExtractionError(
+                f"{file_name} could not be read reliably. Try a text-based PDF or a clearer scan."
+            ) from exc
 
         return ParsedDocument(
             document_id=document_id,
             document_type=document_type,
             file_name=file_name,
-            markdown=markdown,
-            structured_json=structured_json,
-            extracted_sections=[]
+            markdown=result.text,
+            structured_json={
+                "name": file_name,
+                "format": "pdf",
+                "page_count": result.page_count,
+                "block_count": result.block_count,
+                "textract_model_version": result.model_version,
+                "extraction_method": "amazon_textract",
+            },
+            extracted_sections=[],
+            extraction_method="amazon_textract",
+            extraction_confidence=result.confidence,
+        )
+
+    def _extract_embedded_pdf_text(self, payload: bytes) -> tuple[str, int]:
+        try:
+            reader = PdfReader(BytesIO(payload), strict=False)
+            if reader.is_encrypted:
+                try:
+                    reader.decrypt("")
+                except Exception as exc:
+                    raise DocumentExtractionError(
+                        "Password-protected PDFs are not supported."
+                    ) from exc
+            pages = [page.extract_text() or "" for page in reader.pages]
+            return "\n\n".join(page.strip() for page in pages if page.strip()), len(reader.pages)
+        except DocumentExtractionError:
+            raise
+        except Exception as exc:
+            logger.info("Embedded PDF text extraction failed; trying Textract: %s", exc)
+            return "", 0
+
+    def _parse_docx_bytes(self, payload: bytes, document_id: str, file_name: str, document_type: str) -> ParsedDocument:
+        try:
+            document = Document(BytesIO(payload))
+            blocks = [paragraph.text.strip() for paragraph in document.paragraphs if paragraph.text.strip()]
+            for table in document.tables:
+                for row in table.rows:
+                    cells = [cell.text.strip() for cell in row.cells if cell.text.strip()]
+                    if cells:
+                        blocks.append(" | ".join(cells))
+            text = "\n".join(blocks)
+        except Exception as exc:
+            logger.exception("DOCX extraction failed for %s", file_name)
+            raise DocumentExtractionError(
+                f"{file_name} could not be read as a Word document."
+            ) from exc
+
+        if not self._is_usable_text(text):
+            raise DocumentExtractionError(f"{file_name} did not contain enough readable text.")
+
+        return ParsedDocument(
+            document_id=document_id,
+            document_type=document_type,
+            file_name=file_name,
+            markdown=text,
+            structured_json={"name": file_name, "format": "docx", "extraction_method": "python_docx"},
+            extracted_sections=[],
+            extraction_method="python_docx",
+            extraction_confidence=self._score_text_quality(text, base=0.93),
+        )
+
+    def _is_usable_text(self, text: str) -> bool:
+        compact = re.sub(r"\s+", " ", text).strip()
+        if len(compact) < 40:
+            return False
+        printable_ratio = sum(character.isprintable() for character in compact) / len(compact)
+        letter_ratio = sum(character.isalpha() for character in compact) / len(compact)
+        return printable_ratio >= 0.95 and letter_ratio >= 0.25
+
+    def _score_text_quality(self, text: str, base: float) -> float:
+        compact = re.sub(r"\s+", " ", text).strip()
+        if not compact:
+            return 0.0
+        printable_ratio = sum(character.isprintable() for character in compact) / len(compact)
+        replacement_penalty = min(0.15, compact.count("\ufffd") * 0.02)
+        length_adjustment = 0.02 if len(compact) >= 300 else 0.0
+        return round(
+            max(0.0, min(0.97, base + length_adjustment - (1 - printable_ratio) - replacement_penalty)),
+            2,
         )
 
     def _parse_markdown(self, content: str, document_id: str, file_name: str, document_type: str) -> ParsedDocument:
-        try:
-            result = self.converter.convert_string(content, format=InputFormat.MD, name=file_name)
-            markdown = result.document.export_to_markdown()
-            structured_json = result.document.export_to_dict()
-        except Exception:
-            markdown = content
-            structured_json = {"name": file_name, "format": "markdown"}
-
         return ParsedDocument(
             document_id=document_id,
             document_type=document_type,
             file_name=file_name,
-            markdown=markdown,
-            structured_json=structured_json,
-            extracted_sections=[]
+            markdown=content,
+            structured_json={"name": file_name, "format": "markdown"},
+            extracted_sections=[],
+            extraction_method="markdown_text",
+            extraction_confidence=self._score_text_quality(content, base=0.93),
         )
 
     def _parse_plain_text(self, content: str, document_id: str, file_name: str, document_type: str) -> ParsedDocument:
@@ -107,7 +202,9 @@ class InsuranceDocumentParser:
             file_name=file_name,
             markdown=content.strip(),
             structured_json={"name": file_name, "format": "text", "content": content},
-            extracted_sections=[]
+            extracted_sections=[],
+            extraction_method="plain_text",
+            extraction_confidence=self._score_text_quality(content, base=0.93),
         )
 
     def _detect_insurance_sections(
@@ -141,7 +238,15 @@ class InsuranceDocumentParser:
         return matched_sections, list(OrderedDict.fromkeys(keyword_hits))
 
     def _split_into_sections(self, markdown: str) -> list[str]:
-        lines = markdown.splitlines()
+        lines = [line.strip() for line in markdown.splitlines() if line.strip()]
+        if not lines:
+            return []
+
+        # PDF text extractors preserve lines more reliably than headings. Small,
+        # overlapping windows keep each coverage label beside its own limits.
+        if not any(line.startswith("#") for line in lines):
+            return ["\n".join(lines[index:index + 4]) for index in range(len(lines))]
+
         sections: list[str] = []
         current: list[str] = []
 
@@ -163,6 +268,13 @@ class InsuranceDocumentParser:
         return sections
 
     def _extract_certificate_holder_text(self, markdown: str) -> str | None:
+        line_match = re.search(
+            r"(?im)^certificate holder(?: name)?\s*:?\s*$\n([^\n]+)",
+            markdown,
+        )
+        if line_match:
+            return line_match.group(1).strip(" .:-")
+
         patterns = [
             r"CERTIFICATE HOLDER\s+(.*?)\s+AUTHORIZED REPRESENTATIVE",
             r"CERTIFICATE HOLDER\s+(.*?)\s+SHOULD ANY OF THE ABOVE DESCRIBED POLICIES",

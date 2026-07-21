@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Private temporary document storage and Textract access for Certificate and Coverage Clarity.
+
+Parameters:
+  ExecutionRoleName:
+    Type: String
+    Default: CoverageClarityLambdaExecutionRole
+
+Resources:
+  TemporaryDocumentBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: certificate-coverage-clarity-temp-177712846877-us-east-2
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: RemoveTemporaryUploads
+            Status: Enabled
+            Prefix: temporary-uploads/
+            ExpirationInDays: 1
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Application
+          Value: certificate-coverage-clarity
+        - Key: DataClassification
+          Value: temporary-public-demo-input
+
+  LambdaTextractPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Least-privilege temporary S3 and Textract access for the coverage clarity Lambda.
+      Roles:
+        - !Ref ExecutionRoleName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TemporaryDocumentBucketAccess
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource: !Sub "${TemporaryDocumentBucket.Arn}/temporary-uploads/*"
+          - Sid: AnalyzeTemporaryDocuments
+            Effect: Allow
+            Action:
+              - textract:StartDocumentAnalysis
+              - textract:GetDocumentAnalysis
+            Resource: "*"
+
+Outputs:
+  TemporaryDocumentBucketName:
+    Description: Bucket used only while Textract analyzes image-based PDFs.
+    Value: !Ref TemporaryDocumentBucket

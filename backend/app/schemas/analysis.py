@@ -39,6 +39,9 @@ class ParsedDocument(BaseModel):
     certificate_holder_text: str | None = None
     matched_keywords: list[str] = []
     failed_matches: list[str] = []
+    extraction_method: str = "unknown"
+    extraction_confidence: float = 0.0
+    extraction_warning: str | None = None
 
 
 class Obligation(BaseModel):

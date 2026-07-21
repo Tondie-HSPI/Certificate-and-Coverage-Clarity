@@ -13,7 +13,8 @@ for the AWS hosting path and keep this repo as the backend source of truth.
 Lovable frontend
   -> HTTPS API URL
   -> Coverage Clarity FastAPI backend
-  -> Docling PDF/text extraction
+  -> Embedded PDF/DOCX text extraction
+  -> Amazon Textract fallback for image-based PDFs
   -> Deterministic comparison and email draft generation
 ```
 
@@ -59,6 +60,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8080
 COVERAGE_CLARITY_APP_NAME=Coverage Clarity API
 COVERAGE_CLARITY_APP_ENV=production
 COVERAGE_CLARITY_CORS_ALLOW_ORIGINS=["https://your-lovable-domain.example"]
+COVERAGE_CLARITY_TEXTRACT_BUCKET=your-private-temporary-bucket
 ```
 
 During early testing, `COVERAGE_CLARITY_CORS_ALLOW_ORIGINS=["*"]` is acceptable, but narrow
@@ -82,6 +84,7 @@ it to the Lovable production URL before sharing with real users.
 - API URL uses HTTPS
 - Upload size limits configured at the hosting layer
 - No sensitive sample documents committed
+- Temporary Textract bucket is encrypted, private, and has a one-day lifecycle rule
 - Clear human-review disclaimer shown in the frontend
 - Email drafts are editable and not sent automatically
 - CloudWatch or equivalent logs enabled

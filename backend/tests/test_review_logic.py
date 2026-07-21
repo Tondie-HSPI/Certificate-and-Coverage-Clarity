@@ -156,7 +156,7 @@ def test_multiple_requirement_documents_require_user_selection():
     assert result.analysis_mode == "source_selection_required"
     assert result.source_of_truth.selection_status == "selection_required"
     assert result.items == []
-    assert result.overall_confidence == 0.0
+    assert result.overall_confidence >= 0.9
 
 
 def test_confidence_uses_detected_requirements_not_unmatched_rule_placeholders():
@@ -325,4 +325,106 @@ def test_certificate_holder_name_label_is_not_treated_as_part_of_the_name():
     assert holder.requirement == "Northbridge Development LLC"
     assert holder.state == "met"
     assert waiver.state == "missing"
+
+
+def test_public_sample_pdfs_extract_and_compare_end_to_end():
+    from pathlib import Path
+
+    from app.schemas.analysis import IntakeRequest, UploadDescriptor
+    from app.services.analysis_service import AnalysisService
+
+    samples = Path(__file__).resolve().parents[2] / "public" / "samples"
+    requirements_name = "requester-requirements-sample.pdf"
+    certificate_name = "certificate-sample.pdf"
+    result = AnalysisService().run(
+        IntakeRequest(
+            account_role="reviewer",
+            requirements_document_id=f"0-{requirements_name}",
+            documents=[
+                UploadDescriptor(
+                    document_id=f"0-{requirements_name}",
+                    document_type="contract",
+                    file_name=requirements_name,
+                    binary_payload=(samples / requirements_name).read_bytes(),
+                ),
+                UploadDescriptor(
+                    document_id=f"1-{certificate_name}",
+                    document_type="coi",
+                    file_name=certificate_name,
+                    binary_payload=(samples / certificate_name).read_bytes(),
+                ),
+            ],
+        )
+    )
+
+    states = {item.obligation_type: item.state for item in result.items}
+    assert result.overall_confidence >= 0.9
+    assert {document.extraction_method for document in result.parsed_documents} == {"embedded_pdf_text"}
+    assert states["General Liability"] == "met"
+    assert states["Additional Insured"] == "met"
+    assert states["Waiver of Subrogation"] == "missing"
+    assert states["Umbrella / Excess"] == "met"
+    assert result.email_draft is not None
+    assert "Waiver of Subrogation" in result.email_draft.body
+
+
+def test_confidence_measures_reading_quality_not_alignment():
+    from app.schemas.analysis import IntakeRequest, UploadDescriptor
+    from app.services.analysis_service import AnalysisService
+
+    service = AnalysisService()
+    requirements = UploadDescriptor(
+        document_id="requirements",
+        document_type="contract",
+        file_name="requirements.txt",
+        content="Commercial General Liability insurance of $1,000,000 each occurrence is required.",
+    )
+    matching = service.run(IntakeRequest(
+        account_role="reviewer",
+        requirements_document_id="requirements",
+        documents=[
+            requirements,
+            UploadDescriptor(
+                document_id="matching",
+                document_type="coi",
+                file_name="matching.txt",
+                content="Commercial General Liability insurance of $1,000,000 each occurrence is shown.",
+            ),
+        ],
+    ))
+    missing = service.run(IntakeRequest(
+        account_role="reviewer",
+        requirements_document_id="requirements",
+        documents=[
+            requirements,
+            UploadDescriptor(
+                document_id="missing",
+                document_type="coi",
+                file_name="missing.txt",
+                content="This readable certificate contains no matching general liability evidence.",
+            ),
+        ],
+    ))
+
+    assert matching.overall_confidence == missing.overall_confidence
+    assert matching.overall_confidence >= 0.9
+
+
+def test_failed_pdf_extraction_never_returns_raw_pdf_bytes(monkeypatch):
+    from app.extraction_layer.insurance_parser import DocumentExtractionError, InsuranceDocumentParser
+    from app.extraction_layer.textract_client import TextractExtractionError
+
+    parser = InsuranceDocumentParser()
+    monkeypatch.setattr(parser, "_extract_embedded_pdf_text", lambda _: ("", 1))
+    monkeypatch.setattr(
+        parser.textract,
+        "analyze_pdf",
+        lambda *_: (_ for _ in ()).throw(TextractExtractionError("test failure")),
+    )
+
+    try:
+        parser._parse_pdf_bytes(b"%PDF-1.4 invalid", "document", "document.pdf", "coi")
+        assert False, "Unreadable PDFs must not silently fall back to raw bytes"
+    except DocumentExtractionError as exc:
+        assert "could not be read reliably" in str(exc)
 

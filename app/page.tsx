@@ -169,10 +169,12 @@ export default function Home() {
       </section>
 
       <section className="demoNotice" aria-label="Public demonstration notice">
-        <strong>Public portfolio demonstration</strong>
+        <strong>AWS-hosted public demonstration</strong>
         <span>
-          Use the synthetic sample files or de-identified documents only. Do not upload
-          confidential, personal, or client information. Every result requires human review.
+          The site uses HTTPS, and AWS encrypts Lambda temporary storage. This application does
+          not save uploaded files to a database or S3 bucket. Because the public demo does not
+          require sign-in, use publicly available samples or de-identified documents only. Do not
+          upload confidential, personal, or client information. Every result requires human review.
         </span>
       </section>
 

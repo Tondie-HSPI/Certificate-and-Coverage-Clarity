@@ -76,12 +76,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          wait_for_lambda_ready() {
+            for attempt in {1..60}; do
+              read -r state update_status <<<"$(aws lambda get-function \
+                --function-name "${FUNCTION_NAME}" \
+                --query '[Configuration.State,Configuration.LastUpdateStatus]' \
+                --output text)"
+
+              if [[ "${state}" == "Active" && ( "${update_status}" == "Successful" || "${update_status}" == "None" ) ]]; then
+                return 0
+              fi
+
+              if [[ "${state}" == "Failed" || "${update_status}" == "Failed" ]]; then
+                aws lambda get-function \
+                  --function-name "${FUNCTION_NAME}" \
+                  --query 'Configuration.[State,StateReason,LastUpdateStatus,LastUpdateStatusReason]'
+                return 1
+              fi
+
+              sleep 5
+            done
+
+            echo "Timed out waiting for ${FUNCTION_NAME} to become ready."
+            return 1
+          }
+
           IMAGE_URI="${{ steps.login-ecr.outputs.registry }}/${ECR_REPOSITORY}:${GITHUB_SHA}"
           if aws lambda get-function --function-name "${FUNCTION_NAME}" >/dev/null 2>&1; then
             aws lambda update-function-code \
               --function-name "${FUNCTION_NAME}" \
               --image-uri "${IMAGE_URI}" >/dev/null
-            aws lambda wait function-updated --function-name "${FUNCTION_NAME}"
+            wait_for_lambda_ready
             aws lambda update-function-configuration \
               --function-name "${FUNCTION_NAME}" \
               --memory-size 2048 \
@@ -100,7 +125,7 @@ jobs:
               --ephemeral-storage '{"Size": 2048}' \
               --environment 'Variables={COVERAGE_CLARITY_APP_NAME="Certificate & Coverage Clarity API",COVERAGE_CLARITY_APP_ENV="production",COVERAGE_CLARITY_CORS_ALLOW_ORIGINS="[\"https://main.d2cm8nx2fbbm4a.amplifyapp.com\"]"}' >/dev/null
           fi
-          aws lambda wait function-active-v2 --function-name "${FUNCTION_NAME}"
+          wait_for_lambda_ready
 
       - name: Create public HTTPS Function URL
         shell: bash

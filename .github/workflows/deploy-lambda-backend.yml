@@ -111,13 +111,19 @@ jobs:
               --function-name "${FUNCTION_NAME}" \
               --auth-type NONE \
               --cors 'AllowOrigins=https://main.d2cm8nx2fbbm4a.amplifyapp.com,AllowMethods=GET,POST,AllowHeaders=content-type,MaxAge=3600' >/dev/null
-            aws lambda add-permission \
-              --function-name "${FUNCTION_NAME}" \
-              --statement-id FunctionUrlPublicAccess \
-              --action lambda:InvokeFunctionUrl \
-              --principal "*" \
-              --function-url-auth-type NONE >/dev/null
           fi
+          aws lambda add-permission \
+            --function-name "${FUNCTION_NAME}" \
+            --statement-id FunctionUrlPublicAccess \
+            --action lambda:InvokeFunctionUrl \
+            --principal "*" \
+            --function-url-auth-type NONE >/dev/null 2>&1 || true
+          aws lambda add-permission \
+            --function-name "${FUNCTION_NAME}" \
+            --statement-id FunctionUrlInvokeAccess \
+            --action lambda:InvokeFunction \
+            --principal "*" \
+            --invoked-via-function-url >/dev/null 2>&1 || true
           aws lambda get-function-url-config \
             --function-name "${FUNCTION_NAME}" \
             --query FunctionUrl \

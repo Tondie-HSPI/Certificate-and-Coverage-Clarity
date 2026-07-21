@@ -30,7 +30,8 @@ type AnalysisResponse = {
   } | null;
 };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  ?? "https://c3jm2q3x3woezmtr76nsinjuti0phibv.lambda-url.us-east-2.on.aws";
 const maxFileSize = 10 * 1024 * 1024;
 const allowedExtensions = [".pdf", ".docx", ".txt"];
 const stateLabels: Record<string, string> = {
@@ -188,19 +189,38 @@ export default function Home() {
         <aside className="samplePack" aria-labelledby="sample-pack-title">
           <div>
             <p className="eyebrow">Try the workflow</p>
-            <h3 id="sample-pack-title">Download the sample documents</h3>
+            <h3 id="sample-pack-title">Download the public sample PDFs</h3>
             <p>
-              These synthetic files are safe to use. Download them, then upload the requirements
-              first and the certificate as the optional second document.
+              These publicly available sample PDFs are provided for testing. Download them, then
+              upload the requirements first and the certificate as the optional second document.
             </p>
           </div>
-          <div className="sampleLinks">
-            <a href="/samples/requester-requirements.txt" download>
-              Download requirements
-            </a>
-            <a href="/samples/sample-certificate.txt" download>
-              Download certificate
-            </a>
+          <div className="sampleActions">
+            <div className="sampleLinks">
+              <a href="/samples/requester-requirements-sample.pdf" download>
+                Download requirements
+              </a>
+              <a href="/samples/certificate-sample.pdf" download>
+                Download certificate
+              </a>
+            </div>
+            <div className="officialSampleLinks">
+              <span>Additional publicly available examples</span>
+              <a
+                href="https://ogs.ny.gov/system/files/documents/2019/07/SampleCertificateofInsurance.pdf"
+                target="_blank"
+                rel="noreferrer"
+              >
+                NYS sample COI PDF
+              </a>
+              <a
+                href="https://ogs.ny.gov/design-construction/contractor-construction-forms"
+                target="_blank"
+                rel="noreferrer"
+              >
+                NYS insurance sample forms
+              </a>
+            </div>
           </div>
         </aside>
 
@@ -298,6 +318,25 @@ export default function Home() {
           <button className="primaryButton" type="submit" disabled={!canAnalyze}>
             {isAnalyzing ? "Reviewing document..." : "Review document"}
           </button>
+          {isAnalyzing && (
+            <div className="processingCard" role="status" aria-live="polite">
+              <div className="documentAnimation" aria-hidden="true">
+                <span className="documentPage documentPageBack" />
+                <span className="documentPage documentPageFront">
+                  <i className="documentLine documentLineOne" />
+                  <i className="documentLine documentLineTwo" />
+                  <i className="documentLine documentLineThree" />
+                  <i className="scanLine" />
+                </span>
+                <span className="checkBubble">✓</span>
+              </div>
+              <div>
+                <strong>Following the information trail</strong>
+                <p>Reading the documents, identifying requester requirements, and checking the evidence.</p>
+                <small>The first review after the demo has been idle can take two to three minutes.</small>
+              </div>
+            </div>
+          )}
           <p className="uploadLimit">Up to two files. PDF, DOCX, or TXT. Maximum 10 MB each.</p>
         </form>
 
@@ -325,6 +364,17 @@ export default function Home() {
             <span>Source of truth</span>
             <strong>{result.source_of_truth.basis}</strong>
             <small>{result.source_of_truth.document_name}</small>
+          </div>
+
+          <div className="confidenceSummary">
+            <div>
+              <span>Analysis confidence</span>
+              <strong>{Math.round(result.overall_confidence * 100)}%</strong>
+            </div>
+            <p>
+              Based on requirement extraction, source selection, and whether the comparison contains
+              unclear findings. Insurance representative verification is still required.
+            </p>
           </div>
 
           {result.items.length ? (

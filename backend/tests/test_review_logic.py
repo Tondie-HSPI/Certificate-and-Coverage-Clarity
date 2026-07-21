@@ -156,6 +156,42 @@ def test_multiple_requirement_documents_require_user_selection():
     assert result.analysis_mode == "source_selection_required"
     assert result.source_of_truth.selection_status == "selection_required"
     assert result.items == []
+    assert result.overall_confidence == 0.0
+
+
+def test_confidence_uses_detected_requirements_not_unmatched_rule_placeholders():
+    from app.schemas.analysis import IntakeRequest, UploadDescriptor
+    from app.services.analysis_service import AnalysisService
+
+    result = AnalysisService().run(
+        IntakeRequest(
+            account_role="reviewer",
+            requirements_document_id="requirements",
+            documents=[
+                UploadDescriptor(
+                    document_id="requirements",
+                    document_type="contract",
+                    file_name="requirements.txt",
+                    content=(
+                        "Commercial General Liability insurance with limits of $1,000,000 "
+                        "each occurrence and $2,000,000 aggregate is required.\n"
+                        "Waiver of subrogation is required."
+                    ),
+                ),
+                UploadDescriptor(
+                    document_id="certificate",
+                    document_type="coi",
+                    file_name="certificate.txt",
+                    content=(
+                        "Commercial General Liability coverage with limits of $1,000,000 "
+                        "each occurrence and $2,000,000 aggregate."
+                    ),
+                ),
+            ],
+        )
+    )
+
+    assert 0.8 <= result.overall_confidence <= 0.95
 
 
 def test_supported_requirements_create_cautious_requester_email():

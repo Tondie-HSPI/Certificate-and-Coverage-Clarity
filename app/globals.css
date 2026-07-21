@@ -599,6 +599,200 @@ h2 {
   font-size: 0.84rem;
 }
 
+.sampleActions {
+  display: grid;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.officialSampleLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  max-width: 420px;
+}
+
+.officialSampleLinks span {
+  width: 100%;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.officialSampleLinks a {
+  color: var(--blue);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.processingCard {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+  margin-top: 16px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #eff6ff, #f0fdfa);
+  padding: 20px;
+  overflow: hidden;
+}
+
+.processingCard p {
+  margin: 6px 0;
+}
+
+.processingCard small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.documentAnimation {
+  position: relative;
+  width: 94px;
+  height: 92px;
+  margin: 0 auto;
+}
+
+.documentPage {
+  position: absolute;
+  width: 62px;
+  height: 78px;
+  border: 2px solid #93c5fd;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.12);
+}
+
+.documentPageBack {
+  top: 4px;
+  left: 5px;
+  transform: rotate(-7deg);
+  animation: documentShuffle 2.4s ease-in-out infinite;
+}
+
+.documentPageFront {
+  top: 9px;
+  left: 20px;
+  overflow: hidden;
+  animation: documentFloat 2.4s ease-in-out infinite;
+}
+
+.documentLine {
+  position: absolute;
+  left: 10px;
+  height: 4px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.documentLineOne {
+  top: 18px;
+  width: 38px;
+}
+
+.documentLineTwo {
+  top: 31px;
+  width: 30px;
+}
+
+.documentLineThree {
+  top: 44px;
+  width: 35px;
+}
+
+.scanLine {
+  position: absolute;
+  left: 5px;
+  width: 48px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 9px rgba(15, 118, 110, 0.7);
+  animation: scanDocument 2s ease-in-out infinite;
+}
+
+.checkBubble {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.28);
+  animation: checkPulse 1.5s ease-in-out infinite;
+}
+
+.confidenceSummary {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  margin: 0 0 18px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+  padding: 16px;
+}
+
+.confidenceSummary div,
+.confidenceSummary span,
+.confidenceSummary strong {
+  display: block;
+}
+
+.confidenceSummary span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.confidenceSummary strong {
+  margin-top: 3px;
+  color: var(--navy);
+  font-size: 1.65rem;
+}
+
+.confidenceSummary p {
+  margin: 0;
+}
+
+@keyframes scanDocument {
+  0%, 100% { top: 11px; opacity: 0.65; }
+  50% { top: 61px; opacity: 1; }
+}
+
+@keyframes documentFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes documentShuffle {
+  0%, 100% { transform: rotate(-7deg) translateX(0); }
+  50% { transform: rotate(-3deg) translateX(-3px); }
+}
+
+@keyframes checkPulse {
+  0%, 100% { transform: scale(0.92); }
+  50% { transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .documentPage,
+  .scanLine,
+  .checkBubble {
+    animation: none;
+  }
+}
+
 .errorMessage,
 .emptyResult {
   margin-top: 18px;
@@ -714,5 +908,10 @@ h2 {
   .samplePack {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .processingCard,
+  .confidenceSummary {
+    grid-template-columns: 1fr;
   }
 }

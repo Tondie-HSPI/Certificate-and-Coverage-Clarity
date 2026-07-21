@@ -17,6 +17,7 @@ node_modules/
 /build
 dist/
 coverage/
+/output/
 .pnp
 .pnp.*
 .yarn/*

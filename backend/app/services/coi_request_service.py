@@ -87,12 +87,17 @@ class CoiRequestService:
         )
         holder_address = self._line_value(
             text,
-            [r"certificate holder address\s*:\s*([^\r\n]+)", r"holder address\s*:\s*([^\r\n]+)"],
+            [
+                r"certificate holder address\s*:\s*([^\r\n|]+)",
+                r"holder address\s*:\s*([^\r\n|]+)",
+                r"(?m)^address\s*:\s*([^\r\n|]+)",
+            ],
         )
         wording = self._line_value(
             text,
             [
                 r"wording required by requester\s*:\s*([^\r\n]+)",
+                r"requester-required wording\s*:\s*([^\r\n|]+)",
                 r"required wording\s*:\s*([^\r\n]+)",
                 r"special wording\s*:\s*([^\r\n]+)",
             ],

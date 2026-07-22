@@ -321,7 +321,10 @@ class ObligationModeler:
     def _extract_parties(self, section_text: str) -> list[str]:
         party_patterns = OrderedDict(self.rules["parties"])
         parties = [party for party, pattern in party_patterns.items() if re.search(pattern, section_text, re.IGNORECASE)]
-        organization_pattern = r"\b[A-Z][A-Za-z0-9&.' -]{2,80}?\s+(?:LLC|L\.L\.C\.|Inc\.?|Corporation|Corp\.?|Company|Co\.?|LLP|LP)\b"
+        organization_pattern = (
+            r"\b(?:[A-Z][A-Za-z0-9&.'-]*[ \t]+){1,8}"
+            r"(?:LLC|L\.L\.C\.|Inc\.?|Corporation|Corp\.?|Company|Co\.?|LLP|LP)\b"
+        )
         for organization in re.findall(organization_pattern, section_text):
             cleaned = organization.strip()
             if cleaned not in parties:

@@ -109,6 +109,7 @@ class InsuranceDocumentParser:
                 "block_count": result.block_count,
                 "textract_model_version": result.model_version,
                 "extraction_method": "amazon_textract",
+                "table_rows": result.table_rows,
             },
             extracted_sections=[],
             extraction_method="amazon_textract",
@@ -268,6 +269,13 @@ class InsuranceDocumentParser:
         return sections
 
     def _extract_certificate_holder_text(self, markdown: str) -> str | None:
+        same_line_match = re.search(
+            r"(?im)^certificate holder(?: name)?\s*:\s*([^\n|]+)",
+            markdown,
+        )
+        if same_line_match:
+            return same_line_match.group(1).strip(" .:-")
+
         line_match = re.search(
             r"(?im)^certificate holder(?: name)?\s*:?\s*$\n([^\n]+)",
             markdown,

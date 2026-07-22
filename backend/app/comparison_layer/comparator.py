@@ -155,7 +155,10 @@ class ComparisonLayer:
 
     def _extract_parties(self, text: str) -> set[str]:
         organizations = re.findall(
-            r"\b[A-Z][A-Za-z0-9&.' -]{2,80}?\s+(?:LLC|L\.L\.C\.|Inc\.?|Corporation|Corp\.?|Company|Co\.?|LLP|LP)\b",
+            (
+                r"\b(?:[A-Z][A-Za-z0-9&.'-]*[ \t]+){1,8}"
+                r"(?:LLC|L\.L\.C\.|Inc\.?|Corporation|Corp\.?|Company|Co\.?|LLP|LP)\b"
+            ),
             text,
         )
         if organizations:

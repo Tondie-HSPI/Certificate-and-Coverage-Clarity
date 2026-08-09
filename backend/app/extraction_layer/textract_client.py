@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from uuid import uuid4
 
@@ -21,6 +21,7 @@ class TextractResult:
     page_count: int
     block_count: int
     model_version: str | None = None
+    table_rows: list[str] = field(default_factory=list)
 
 
 class TextractClient:
@@ -105,16 +106,96 @@ class TextractClient:
         if not line_blocks:
             raise TextractExtractionError("Amazon Textract did not find readable text in the document.")
 
+        table_rows = self._extract_table_rows(blocks)
+        line_text = "\n".join(block["Text"] for block in line_blocks)
+        normalized_text = "\n".join(table_rows)
+        text = f"{normalized_text}\n\n{line_text}" if normalized_text else line_text
+
         confidence_values = [block["Confidence"] / 100 for block in line_blocks if "Confidence" in block]
         confidence = sum(confidence_values) / len(confidence_values) if confidence_values else 0.0
         page_count = max((block.get("Page", 1) for block in blocks), default=1)
         return TextractResult(
-            text="\n".join(block["Text"] for block in line_blocks),
+            text=text,
             confidence=round(min(0.99, confidence), 2),
             page_count=page_count,
             block_count=len(blocks),
             model_version=response.get("AnalyzeDocumentModelVersion"),
+            table_rows=table_rows,
         )
+
+    def _extract_table_rows(self, blocks: list[dict]) -> list[str]:
+        """Preserve Textract table relationships before the rule engine sees text."""
+        block_map = {
+            block["Id"]: block
+            for block in blocks
+            if block.get("Id")
+        }
+        tables = [block for block in blocks if block.get("BlockType") == "TABLE"]
+        tables.sort(
+            key=lambda block: (
+                block.get("Page", 1),
+                block.get("Geometry", {}).get("BoundingBox", {}).get("Top", 0),
+                block.get("Geometry", {}).get("BoundingBox", {}).get("Left", 0),
+            )
+        )
+
+        normalized_rows: list[str] = []
+        for table in tables:
+            cell_ids = self._relationship_ids(table, "CHILD")
+            cells = [
+                block_map[cell_id]
+                for cell_id in cell_ids
+                if cell_id in block_map and block_map[cell_id].get("BlockType") == "CELL"
+            ]
+            rows: dict[int, list[dict]] = {}
+            for cell in cells:
+                rows.setdefault(int(cell.get("RowIndex", 0)), []).append(cell)
+
+            for row_index in sorted(rows):
+                row_cells = sorted(rows[row_index], key=lambda cell: int(cell.get("ColumnIndex", 0)))
+                values = [self._cell_text(cell, block_map) for cell in row_cells]
+                values = [value for value in values if value]
+                # Single-cell table rows are usually headings or merged narrative boxes.
+                # The normal LINE output preserves them more accurately.
+                if len(values) < 2:
+                    continue
+                row_text = self._format_table_row(values)
+                if row_text and row_text not in normalized_rows:
+                    normalized_rows.append(row_text)
+        return normalized_rows
+
+    def _cell_text(self, cell: dict, block_map: dict[str, dict]) -> str:
+        parts: list[str] = []
+        for child_id in self._relationship_ids(cell, "CHILD"):
+            child = block_map.get(child_id, {})
+            if child.get("BlockType") == "WORD" and child.get("Text"):
+                parts.append(child["Text"])
+            elif child.get("BlockType") == "SELECTION_ELEMENT" and child.get("SelectionStatus") == "SELECTED":
+                parts.append("Selected")
+        return " ".join(parts).strip()
+
+    def _relationship_ids(self, block: dict, relationship_type: str) -> list[str]:
+        for relationship in block.get("Relationships", []):
+            if relationship.get("Type") == relationship_type:
+                return list(relationship.get("Ids", []))
+        return []
+
+    def _format_table_row(self, values: list[str]) -> str:
+        label = values[0].strip()
+        normalized_label = label.lower().rstrip(":")
+        labeled_fields = {
+            "certificate holder",
+            "certificate holder name",
+            "address",
+            "certificate holder address",
+            "requester-required wording",
+            "wording required by requester",
+            "required wording",
+            "special wording",
+        }
+        if len(values) == 2 and normalized_label in labeled_fields:
+            return f"{label.rstrip(':')}: {values[1].strip()}"
+        return " | ".join(value.strip() for value in values)
 
     def _s3_client(self):
         if self._s3 is None:

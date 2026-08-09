@@ -428,3 +428,127 @@ def test_failed_pdf_extraction_never_returns_raw_pdf_bytes(monkeypatch):
     except DocumentExtractionError as exc:
         assert "could not be read reliably" in str(exc)
 
+
+def test_textract_table_rows_preserve_labels_and_values():
+    from app.extraction_layer.textract_client import TextractClient
+
+    def word(block_id: str, text: str) -> dict:
+        return {"Id": block_id, "BlockType": "WORD", "Text": text}
+
+    def cell(block_id: str, row: int, column: int, child_ids: list[str]) -> dict:
+        return {
+            "Id": block_id,
+            "BlockType": "CELL",
+            "RowIndex": row,
+            "ColumnIndex": column,
+            "Relationships": [{"Type": "CHILD", "Ids": child_ids}],
+        }
+
+    blocks = [
+        {
+            "Id": "table",
+            "BlockType": "TABLE",
+            "Page": 1,
+            "Relationships": [{"Type": "CHILD", "Ids": ["c1", "c2", "c3", "c4"]}],
+        },
+        cell("c1", 1, 1, ["w1", "w2"]),
+        cell("c2", 1, 2, ["w3", "w4", "w5"]),
+        cell("c3", 2, 1, ["w6", "w7"]),
+        cell("c4", 2, 2, ["w8", "w9", "w10"]),
+        word("w1", "Certificate"),
+        word("w2", "holder"),
+        word("w3", "Northbridge"),
+        word("w4", "Development"),
+        word("w5", "LLC"),
+        word("w6", "General"),
+        word("w7", "Liability"),
+        word("w8", "$1,000,000"),
+        word("w9", "each"),
+        word("w10", "occurrence"),
+    ]
+
+    assert TextractClient()._extract_table_rows(blocks) == [
+        "Certificate holder: Northbridge Development LLC",
+        "General Liability | $1,000,000 each occurrence",
+    ]
+
+
+def test_textract_normalized_rows_compare_image_only_documents(monkeypatch):
+    from app.extraction_layer.textract_client import TextractResult
+    from app.schemas.analysis import IntakeRequest, UploadDescriptor
+    from app.services.analysis_service import AnalysisService
+
+    requirements_text = """Certificate holder: Northbridge Development LLC
+Address: 100 Main Street, Rochester, NY 14604
+Requester-required wording: None
+Requirement | Requested evidence
+Commercial General Liability | $1,000,000 each occurrence and $2,000,000 general aggregate. Coverage must apply on an occurrence basis.
+Additional Insured | Northbridge Development LLC must be included as an additional insured by endorsement.
+Waiver of Subrogation | A waiver of subrogation in favor of Northbridge Development LLC is required where permitted by law.
+Umbrella or Excess Liability | A limit of not less than $5,000,000 is required."""
+    certificate_text = """Coverage | Policy number | Limits shown
+Commercial General Liability | CGL-2026-1042 | $1,000,000 each occurrence $2,000,000 general aggregate
+Umbrella Liability | UMB-2026-1042 | $5,000,000 each occurrence $5,000,000 aggregate
+Northbridge Development LLC is shown as an additional insured for ongoing operations.
+A separate waiver of subrogation endorsement is not shown in this sample.
+Certificate holder
+Northbridge Development LLC
+100 Main Street
+Rochester, NY 14604
+Special wording: None"""
+
+    service = AnalysisService()
+    parser = service.extraction.parser
+    monkeypatch.setattr(parser, "_extract_embedded_pdf_text", lambda _: ("", 1))
+
+    def fake_textract(_payload: bytes, file_name: str) -> TextractResult:
+        text = requirements_text if "requirements" in file_name else certificate_text
+        return TextractResult(
+            text=text,
+            confidence=0.99,
+            page_count=1,
+            block_count=200,
+            model_version="1.0",
+            table_rows=text.splitlines()[:4],
+        )
+
+    monkeypatch.setattr(parser.textract, "analyze_pdf", fake_textract)
+
+    result = service.run(
+        IntakeRequest(
+            account_role="reviewer",
+            requirements_document_id="requirements",
+            documents=[
+                UploadDescriptor(
+                    document_id="requirements",
+                    document_type="contract",
+                    file_name="requester-requirements-scanned.pdf",
+                    binary_payload=b"image-only requirements PDF",
+                ),
+                UploadDescriptor(
+                    document_id="certificate",
+                    document_type="coi",
+                    file_name="certificate-scanned.pdf",
+                    binary_payload=b"image-only certificate PDF",
+                ),
+            ],
+        )
+    )
+
+    states = {item.obligation_type: item.state for item in result.items}
+    assert result.overall_confidence == 0.99
+    assert {document.extraction_method for document in result.parsed_documents} == {"amazon_textract"}
+    assert states["General Liability"] == "met"
+    additional_insured = next(item for item in result.items if item.obligation_type == "Additional Insured")
+    assert states["Additional Insured"] == "met", additional_insured.model_dump()
+    assert states["Waiver of Subrogation"] == "missing"
+    assert states["Umbrella / Excess"] == "met"
+    assert states["Certificate Holder"] == "met"
+    assert result.email_draft is not None
+    assert result.email_draft.requested_items == [
+        "Waiver of Subrogation: provide evidence meeting the contract requirement (Northbridge Development LLC | waiver wording)."
+    ]
+    assert "Certificate holder name: Northbridge Development LLC" in result.email_draft.body
+    assert "Certificate holder address: 100 Main Street, Rochester, NY 14604" in result.email_draft.body
+    assert "Wording required by requester: None" in result.email_draft.body
+

@@ -150,7 +150,14 @@ export default function Home() {
   }
 
   return (
-    <main className="appShell">
+    <>
+      <header className="siteHeader">
+        <a href="https://pathwayillumination.com" target="_blank" rel="noreferrer">
+          <div className="siteHeaderName">Pathway Illumination</div>
+          <div className="siteHeaderTag">Illuminating the path from complexity to clarity</div>
+        </a>
+      </header>
+      <main className="appShell">
       <section className="hero">
         <div>
           <p className="eyebrow">Commercial insurance decision support</p>
@@ -468,6 +475,7 @@ export default function Home() {
           bind insurance, or provide legal or insurance advice.
         </p>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

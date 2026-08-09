@@ -30,8 +30,7 @@ type AnalysisResponse = {
   } | null;
 };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL
-  ?? "https://c3jm2q3x3woezmtr76nsinjuti0phibv.lambda-url.us-east-2.on.aws";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 const maxFileSize = 10 * 1024 * 1024;
 const allowedExtensions = [".pdf", ".docx", ".txt"];
 const stateLabels: Record<string, string> = {

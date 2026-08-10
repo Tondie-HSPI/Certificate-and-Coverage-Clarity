@@ -72,17 +72,18 @@ class ObligationModeler:
                     continue
 
                 section_text, confidence, status = match
-                if self._is_negated(obligation_type, section_text):
+                focused_text = self._focus_endorsement_section(obligation_type, section_text)
+                if self._is_negated(obligation_type, focused_text):
                     obligations.append(
                         Obligation(
                             obligation_type=obligation_type,
                             document_type=document.document_type,
                             requirement=f"{obligation_type} not found",
                             source=document.file_name or document.document_id,
-                            search_terms=self._build_search_terms(rule, section_text),
+                            search_terms=self._build_search_terms(rule, focused_text),
                             confidence=0.9,
                             raw_status="missing",
-                            source_excerpt=section_text.strip(),
+                            source_excerpt=focused_text.strip(),
                             dependency=None
                         )
                     )
@@ -92,17 +93,57 @@ class ObligationModeler:
                     Obligation(
                         obligation_type=obligation_type,
                         document_type=document.document_type,
-                        requirement=self._build_requirement(obligation_type, section_text, status),
+                        requirement=self._build_requirement(obligation_type, focused_text, status),
                         source=document.file_name or document.document_id,
-                        search_terms=self._build_search_terms(rule, section_text),
+                        search_terms=self._build_search_terms(rule, focused_text),
                         confidence=confidence,
                         raw_status=status,
-                        source_excerpt=section_text.strip(),
+                        source_excerpt=focused_text.strip(),
                         dependency=self._build_dependency(obligation_type, status)
                     )
                 )
 
         return obligations
+
+    def _focus_endorsement_section(self, obligation_type: str, section_text: str) -> str:
+        keywords = {
+            "Additional Insured": r"\badditional\s+insured\b|\bblanket\s+ai\b",
+            "Waiver of Subrogation": r"\bwaiver\s+of\s+subrogation\b|\bsubrogation\s+waiv\w*\b",
+        }
+        pattern = keywords.get(obligation_type)
+        if not pattern:
+            return section_text
+
+        page_labels = re.findall(r"\[Page \d+\]", section_text)
+        segments = [
+            segment.strip()
+            for segment in re.split(r"(?<=[.!?])\s+|\n+", section_text)
+            if segment.strip()
+        ]
+        matched_segments: list[str] = []
+        for index, segment in enumerate(segments):
+            if not re.search(pattern, segment, re.IGNORECASE):
+                continue
+            matched_segments.append(segment)
+            continuation_index = index + 1
+            while (
+                matched_segments[-1]
+                and not re.search(r"[.!?]$", matched_segments[-1])
+                and continuation_index < len(segments)
+                and continuation_index <= index + 2
+            ):
+                continuation = segments[continuation_index]
+                if re.fullmatch(r"\[Page \d+\]", continuation):
+                    break
+                matched_segments[-1] = f"{matched_segments[-1]} {continuation}"
+                continuation_index += 1
+        if not matched_segments:
+            return section_text
+
+        focused = "\n".join(matched_segments)
+        if page_labels and page_labels[0] not in focused:
+            focused = f"{page_labels[0]}\n{focused}"
+        return focused
 
     def _is_negated(self, obligation_type: str, section_text: str) -> bool:
         negation_terms = {

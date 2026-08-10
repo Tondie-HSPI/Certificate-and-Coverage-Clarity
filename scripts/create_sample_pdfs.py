@@ -134,7 +134,7 @@ def build_requirements(path: Path):
     ]
 
     details = [
-        [Paragraph("Certificate holder", s["small"]), Paragraph("Northbridge Development LLC", s["body"])],
+        [Paragraph("Certificate holder", s["small"]), Paragraph("Juniper Ridge Facilities LLC", s["body"])],
         [Paragraph("Address", s["small"]), Paragraph("100 Main Street, Rochester, NY 14604", s["body"])],
         [Paragraph("Requester-required wording", s["small"]), Paragraph("None", s["body"])],
     ]
@@ -163,11 +163,11 @@ def build_requirements(path: Path):
         ],
         [
             Paragraph("Additional Insured", s["body"]),
-            Paragraph("Northbridge Development LLC must be included as an additional insured by endorsement.", s["body"]),
+            Paragraph("Juniper Ridge Facilities LLC must be included as an additional insured by endorsement.", s["body"]),
         ],
         [
             Paragraph("Waiver of Subrogation", s["body"]),
-            Paragraph("A waiver of subrogation in favor of Northbridge Development LLC is required where permitted by law.", s["body"]),
+            Paragraph("A waiver of subrogation in favor of Juniper Ridge Facilities LLC is required where permitted by law.", s["body"]),
         ],
         [
             Paragraph("Umbrella or Excess Liability", s["body"]),
@@ -274,14 +274,14 @@ def build_certificate(path: Path):
             coverage_table,
             Paragraph("Endorsement information", s["section"]),
             Paragraph(
-                "Northbridge Development LLC is shown as an additional insured for ongoing operations. A separate waiver of subrogation endorsement is not shown in this sample.",
+                "Juniper Ridge Facilities LLC is shown as an additional insured for ongoing operations. A separate waiver of subrogation endorsement is not shown in this sample.",
                 s["body"],
             ),
             Paragraph("Certificate holder", s["section"]),
         ]
     )
     holder = Table(
-        [[Paragraph("Northbridge Development LLC<br/>100 Main Street<br/>Rochester, NY 14604", s["body"]) ]],
+        [[Paragraph("Juniper Ridge Facilities LLC<br/>100 Main Street<br/>Rochester, NY 14604", s["body"]) ]],
         colWidths=[6.4 * inch],
     )
     holder.setStyle(

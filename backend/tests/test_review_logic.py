@@ -562,6 +562,9 @@ Special wording: None"""
     assert result.email_draft.requested_items == [
         "Waiver of Subrogation: provide evidence meeting the contract requirement (Northbridge Development LLC | waiver wording)."
     ]
+    for item in result.items:
+        assert f"{item.obligation_type}: confirm" in result.email_draft.body
+    assert "Umbrella / Excess: confirm $5,000,000" in result.email_draft.body
     assert "Certificate holder name: Northbridge Development LLC" in result.email_draft.body
     assert "Certificate holder address: 100 Main Street, Rochester, NY 14604" in result.email_draft.body
     assert "Wording required by requester: None" in result.email_draft.body

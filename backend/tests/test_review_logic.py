@@ -1,5 +1,6 @@
 from app.comparison_layer.comparator import ComparisonLayer
-from app.schemas.analysis import Obligation
+from app.governance.constraints import GovernanceLayer
+from app.schemas.analysis import DecisionItem, Obligation
 from app.services.coi_request_service import CoiRequestService
 
 
@@ -14,6 +15,68 @@ def obligation(obligation_type: str, document_type: str, requirement: str, raw_s
         raw_status=raw_status,
         source_excerpt=requirement,
     )
+
+
+def decision(obligation_type: str, source_excerpt: str) -> DecisionItem:
+    return DecisionItem(
+        obligation_type=obligation_type,
+        requirement="Juniper Ridge Facilities LLC",
+        evidence_requirement="Evidence detected",
+        state="met",
+        search_terms=[obligation_type.lower()],
+        source="requirements.txt vs evidence.pdf",
+        evidence_source="evidence.pdf",
+        source_excerpt=source_excerpt,
+        explanation="Evidence supports this obligation.",
+        next_action="No immediate action needed.",
+    )
+
+
+def test_endorsement_requirements_cannot_be_supported_by_certificate_wording_alone():
+    governed = GovernanceLayer().validate_outputs([
+        decision(
+            "Waiver of Subrogation",
+            "Contract: waiver required\n\nEvidence: waiver of subrogation is shown on the certificate",
+        )
+    ])[0]
+
+    assert governed.state == "needs_review"
+    assert "applicable policy endorsement" in governed.next_action
+
+
+def test_certificate_holder_is_not_additional_insured_evidence():
+    governed = GovernanceLayer().validate_outputs([
+        decision(
+            "Additional Insured",
+            "Contract: Juniper Ridge must be added\n\nEvidence: Certificate Holder: Juniper Ridge Facilities LLC",
+        )
+    ])[0]
+
+    assert governed.state == "needs_review"
+    assert "Additional Insured endorsement" in governed.next_action
+
+
+def test_specific_endorsement_evidence_can_remain_supported():
+    governed = GovernanceLayer().validate_outputs([
+        decision(
+            "Additional Insured",
+            "Contract: Juniper Ridge must be added\n\nEvidence: CG 20 26 endorsement attached; Juniper Ridge Facilities LLC is the scheduled organization",
+        )
+    ])[0]
+
+    assert governed.state == "met"
+
+
+def test_conflicting_evidence_is_routed_to_human_review():
+    governed = GovernanceLayer().validate_outputs([
+        decision(
+            "Additional Insured",
+            "Contract: Juniper Ridge must be added\n\nEvidence: CG 20 26 endorsement attached but the endorsement is not included",
+        )
+    ])[0]
+
+    assert governed.state == "needs_review"
+    assert "conflicting" in governed.explanation.lower()
 
 
 def test_general_liability_limit_comparison_marks_supported_evidence_met():
@@ -376,10 +439,12 @@ def test_public_sample_pdfs_extract_and_compare_end_to_end():
     assert {document.extraction_method for document in result.parsed_documents} == {"embedded_pdf_text"}
     assert states["General Liability"] == "met"
     assert states["Additional Insured"] == "unmet"
-    assert states["Waiver of Subrogation"] == "met"
+    assert states["Waiver of Subrogation"] == "needs_review"
     assert states["Umbrella / Excess"] == "met"
     assert result.email_draft is not None
     assert "Additional Insured" in result.email_draft.body
+    assert "Waiver of Subrogation" in result.email_draft.body
+    assert any("[Page 1]" in item.source_excerpt for item in result.items)
 
 
 def test_confidence_measures_reading_quality_not_alignment():
@@ -554,14 +619,13 @@ Special wording: None"""
     assert {document.extraction_method for document in result.parsed_documents} == {"amazon_textract"}
     assert states["General Liability"] == "met"
     additional_insured = next(item for item in result.items if item.obligation_type == "Additional Insured")
-    assert states["Additional Insured"] == "met", additional_insured.model_dump()
+    assert states["Additional Insured"] == "needs_review", additional_insured.model_dump()
     assert states["Waiver of Subrogation"] == "missing"
     assert states["Umbrella / Excess"] == "met"
     assert states["Certificate Holder"] == "met"
     assert result.email_draft is not None
-    assert result.email_draft.requested_items == [
-        "Waiver of Subrogation: provide evidence meeting the contract requirement (Northbridge Development LLC | waiver wording)."
-    ]
+    assert any(item.startswith("Additional Insured:") for item in result.email_draft.requested_items)
+    assert any(item.startswith("Waiver of Subrogation:") for item in result.email_draft.requested_items)
     for item in result.items:
         assert f"{item.obligation_type}: confirm" in result.email_draft.body
     assert "Umbrella / Excess: confirm $5,000,000" in result.email_draft.body

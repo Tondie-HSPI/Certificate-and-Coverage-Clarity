@@ -409,6 +409,12 @@ export default function Home() {
                     <span className="detailLabel">Evidence reviewed</span>
                     <p>{item.evidence_requirement || item.source_excerpt || "No matching evidence was extracted."}</p>
                     {item.evidence_source && <small>Source: {item.evidence_source}</small>}
+                    {item.source_excerpt && (
+                      <details className="sourceEvidence">
+                        <summary>Show exact source text</summary>
+                        <pre>{item.source_excerpt}</pre>
+                      </details>
+                    )}
                   </div>
                   <div>
                     <span className="detailLabel">Review explanation</span>

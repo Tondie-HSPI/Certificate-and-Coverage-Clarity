@@ -127,7 +127,12 @@ class InsuranceDocumentParser:
                         "Password-protected PDFs are not supported."
                     ) from exc
             pages = [page.extract_text() or "" for page in reader.pages]
-            return "\n\n".join(page.strip() for page in pages if page.strip()), len(reader.pages)
+            labeled_pages = [
+                f"[Page {page_number}]\n{page_text.strip()}"
+                for page_number, page_text in enumerate(pages, start=1)
+                if page_text.strip()
+            ]
+            return "\n\n".join(labeled_pages), len(reader.pages)
         except DocumentExtractionError:
             raise
         except Exception as exc:
@@ -246,7 +251,16 @@ class InsuranceDocumentParser:
         # PDF text extractors preserve lines more reliably than headings. Small,
         # overlapping windows keep each coverage label beside its own limits.
         if not any(line.startswith("#") for line in lines):
-            return ["\n".join(lines[index:index + 4]) for index in range(len(lines))]
+            windows: list[str] = []
+            current_page: str | None = None
+            for index, line in enumerate(lines):
+                if re.fullmatch(r"\[Page \d+\]", line):
+                    current_page = line
+                window_lines = lines[index:index + 4]
+                if current_page and current_page not in window_lines:
+                    window_lines = [current_page, *window_lines]
+                windows.append("\n".join(window_lines))
+            return windows
 
         sections: list[str] = []
         current: list[str] = []

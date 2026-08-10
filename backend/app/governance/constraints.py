@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import re
 
 from app.rules.loader import load_governance_rules
 from app.schemas.analysis import DecisionItem, UploadDescriptor
@@ -82,6 +83,31 @@ class GovernanceLayer:
                 explanation = "Source grounding was not strong enough to treat this requirement as supported."
                 next_action = fallback_next_action
 
+            evidence_text = self._evidence_excerpt(item.source_excerpt)
+            if state == "met" and item.obligation_type == "Additional Insured":
+                if self._certificate_holder_is_only_named_evidence(evidence_text):
+                    state = "needs_review"
+                    explanation = "Certificate holder wording is not evidence of Additional Insured status."
+                    next_action = "Obtain the Additional Insured endorsement and verify the specifically named organization."
+
+            if state == "met" and item.obligation_type in {"Additional Insured", "Waiver of Subrogation"}:
+                if not self._has_endorsement_evidence(evidence_text):
+                    state = "needs_review"
+                    explanation = (
+                        "The document mentions this requirement, but the applicable policy endorsement "
+                        "was not identified in the uploaded evidence."
+                    )
+                    next_action = "Obtain and review the applicable policy endorsement."
+
+            if (
+                state == "met"
+                and item.obligation_type in {"Additional Insured", "Waiver of Subrogation"}
+                and self._contains_conflicting_evidence(evidence_text)
+            ):
+                state = "needs_review"
+                explanation = "The evidence contains conflicting positive and negative statements."
+                next_action = fallback_next_action
+
             for phrase in prohibited_phrases:
                 if phrase in explanation.lower():
                     explanation = "System explanation constrained by governance rules."
@@ -102,6 +128,29 @@ class GovernanceLayer:
             )
 
         return sanitized_items
+
+    def _evidence_excerpt(self, source_excerpt: str) -> str:
+        marker = "Evidence:"
+        return source_excerpt.split(marker, 1)[1].strip() if marker in source_excerpt else source_excerpt.strip()
+
+    def _has_endorsement_evidence(self, evidence_text: str) -> bool:
+        patterns = [
+            r"\b(?:CG|CA|WC)\s*\d{2}\s*\d{2}\b",
+            r"\bendorsement\s+(?:attached|provided|included|shown|reviewed)\b",
+            r"\bby\s+endorsement\b",
+        ]
+        return any(re.search(pattern, evidence_text, re.IGNORECASE) for pattern in patterns)
+
+    def _certificate_holder_is_only_named_evidence(self, evidence_text: str) -> bool:
+        return bool(
+            re.search(r"\bcertificate\s+holder\b", evidence_text, re.IGNORECASE)
+            and not re.search(r"\badditional\s+insured\b", evidence_text, re.IGNORECASE)
+        )
+
+    def _contains_conflicting_evidence(self, evidence_text: str) -> bool:
+        positive = re.search(r"\b(?:shown|included|provided|attached)\b", evidence_text, re.IGNORECASE)
+        negative = re.search(r"\b(?:not|no)\s+(?:shown|included|provided|attached|endorsement)\b", evidence_text, re.IGNORECASE)
+        return bool(positive and negative)
 
     def _validate_document(self, document: UploadDescriptor) -> None:
         input_rules = self.rules["input_guardrails"]

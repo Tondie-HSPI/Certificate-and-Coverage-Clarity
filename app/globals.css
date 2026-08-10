@@ -358,6 +358,27 @@ h2 {
   color: var(--muted);
 }
 
+.sourceEvidence {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.sourceEvidence summary {
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.sourceEvidence pre {
+  margin: 8px 0 0;
+  border-left: 3px solid var(--amber);
+  padding: 8px 10px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
 .action {
   color: #3c4a57 !important;
   font-weight: 700;

@@ -274,7 +274,7 @@ def build_certificate(path: Path):
             coverage_table,
             Paragraph("Endorsement information", s["section"]),
             Paragraph(
-                "Juniper Ridge Facilities LLC is shown as an additional insured for ongoing operations. A separate waiver of subrogation endorsement is not shown in this document.",
+                "Blanket additional insured wording applies. No specific additional insured entity is named. A waiver of subrogation in favor of Juniper Ridge Facilities LLC is shown where permitted by law.",
                 s["body"],
             ),
             Paragraph("Certificate holder", s["section"]),
@@ -296,7 +296,7 @@ def build_certificate(path: Path):
             ]
         )
     )
-    story.extend([holder, Spacer(1, 0.14 * inch), Paragraph("Special wording: None", s["body"])])
+    story.extend([holder, Spacer(1, 0.14 * inch), Paragraph("Special wording: Blanket additional insured; waiver of subrogation shown", s["body"])])
     doc.build(story, onFirstPage=page_header, onLaterPages=page_header)
 
 

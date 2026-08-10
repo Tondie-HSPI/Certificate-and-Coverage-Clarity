@@ -75,6 +75,17 @@ class ComparisonLayer:
         if "additional insured" in obligation_type or "waiver of subrogation" in obligation_type:
             required_parties = self._extract_parties(required.requirement)
             evidence_parties = self._extract_parties(evidence.requirement)
+            if (
+                "additional insured" in obligation_type
+                and required_parties
+                and re.search(r"\bblanket\b", evidence.source_excerpt, re.IGNORECASE)
+                and re.search(
+                    r"\b(?:not specifically named|no specific additional insured (?:entity|party) is named)\b",
+                    evidence.source_excerpt,
+                    re.IGNORECASE,
+                )
+            ):
+                return "unmet"
             if not required_parties:
                 return "met" if self.endorsements.compare(required.obligation_type, required.requirement, evidence.requirement) else "unmet"
             parties_match = required_parties.issubset(evidence_parties)

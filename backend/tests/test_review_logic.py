@@ -375,11 +375,11 @@ def test_public_sample_pdfs_extract_and_compare_end_to_end():
     assert result.overall_confidence >= 0.9
     assert {document.extraction_method for document in result.parsed_documents} == {"embedded_pdf_text"}
     assert states["General Liability"] == "met"
-    assert states["Additional Insured"] == "met"
-    assert states["Waiver of Subrogation"] == "missing"
+    assert states["Additional Insured"] == "unmet"
+    assert states["Waiver of Subrogation"] == "met"
     assert states["Umbrella / Excess"] == "met"
     assert result.email_draft is not None
-    assert "Waiver of Subrogation" in result.email_draft.body
+    assert "Additional Insured" in result.email_draft.body
 
 
 def test_confidence_measures_reading_quality_not_alignment():

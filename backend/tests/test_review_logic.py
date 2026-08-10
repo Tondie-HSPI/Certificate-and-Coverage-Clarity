@@ -50,6 +50,20 @@ def test_missing_required_waiver_creates_missing_review_item_and_email_request()
     assert "identify any corrections" in email.body
 
 
+def test_email_also_confirms_supported_umbrella_requirement():
+    comparator = ComparisonLayer()
+    items = comparator.compare([
+        obligation("Waiver of Subrogation", "contract", "Waiver required where permitted by law"),
+        obligation("Umbrella / Excess", "contract", "$1,000,000 limit"),
+        obligation("Umbrella / Excess", "policy", "$1,000,000 limit"),
+    ])
+
+    email = CoiRequestService().build_email_draft(items)
+
+    assert email is not None
+    assert "Umbrella / Excess: confirm $1,000,000 limit and provide supporting evidence." in email.body
+
+
 def test_lower_evidence_limit_is_unmet():
     comparator = ComparisonLayer()
     items = comparator.compare([

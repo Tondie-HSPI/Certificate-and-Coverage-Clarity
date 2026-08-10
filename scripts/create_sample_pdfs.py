@@ -171,7 +171,7 @@ def build_requirements(path: Path):
         ],
         [
             Paragraph("Umbrella or Excess Liability", s["body"]),
-            Paragraph("A limit of not less than $5,000,000 is required.", s["body"]),
+            Paragraph("A limit of not less than $1,000,000 is required.", s["body"]),
         ],
     ]
     coverage_table = Table(rows, colWidths=[2.0 * inch, 4.4 * inch], repeatRows=1)
@@ -250,7 +250,7 @@ def build_certificate(path: Path):
     rows = [
         [Paragraph("Coverage", s["table_header"]), Paragraph("Policy number", s["table_header"]), Paragraph("Limits shown", s["table_header"])],
         [Paragraph("Commercial General Liability", s["body"]), Paragraph("CGL-2026-1042", s["body"]), Paragraph("$1,000,000 each occurrence<br/>$2,000,000 general aggregate", s["body"])],
-        [Paragraph("Umbrella Liability", s["body"]), Paragraph("UMB-2026-1042", s["body"]), Paragraph("$5,000,000 each occurrence<br/>$5,000,000 aggregate", s["body"])],
+        [Paragraph("Umbrella Liability", s["body"]), Paragraph("UMB-2026-1042", s["body"]), Paragraph("$1,000,000 each occurrence<br/>$1,000,000 aggregate", s["body"])],
     ]
     coverage_table = Table(rows, colWidths=[2.35 * inch, 1.55 * inch, 2.5 * inch], repeatRows=1)
     coverage_table.setStyle(

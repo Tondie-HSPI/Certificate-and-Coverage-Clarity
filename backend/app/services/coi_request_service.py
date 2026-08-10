@@ -17,6 +17,9 @@ class CoiRequestService:
             if item.state in {"missing", "unmet", "needs_review"}
         ]
         requested_items = [item for item in requested_items if item]
+        confirmation_items = [self._confirmation_line(item) for item in items]
+        confirmation_items = [item for item in confirmation_items if item]
+        confirmations = "\n".join(f"- {item}" for item in confirmation_items)
 
         if not requested_items:
             if items and all(item.state == "met" for item in items):
@@ -25,6 +28,8 @@ class CoiRequestService:
                     "The attached insurance documents appear to address the requirements you "
                     "provided. Please review the documents and let us know if you need any "
                     "additional certificate wording, endorsements, or policy evidence.\n\n"
+                    "Please confirm these requirements and provide supporting evidence for each:\n"
+                    f"{confirmations}\n\n"
                     "This message reflects a document comparison and is subject to human review. "
                     "It does not confirm or certify coverage.\n\n"
                     "Thank you,"
@@ -42,6 +47,8 @@ class CoiRequestService:
             "Please review the insurance requirements below and provide a revised certificate "
             "of insurance and any applicable policy endorsements needed to support them:\n\n"
             f"{bullets}\n\n"
+            "Please also confirm these requirements and provide supporting evidence for each:\n"
+            f"{confirmations}\n\n"
             "Certificate request details:\n"
             f"- Certificate holder name: {certificate_holder_name}\n"
             f"- Certificate holder address: {certificate_holder_address}\n"
@@ -140,3 +147,9 @@ class CoiRequestService:
                 f"{requirement}. Current evidence: {evidence}."
             )
         return f"{item.obligation_type}: confirm and provide supporting documentation for {requirement}."
+
+    def _confirmation_line(self, item: DecisionItem) -> str:
+        requirement = item.requirement.strip()
+        if not requirement:
+            return ""
+        return f"{item.obligation_type}: confirm {requirement} and provide supporting evidence."

@@ -349,7 +349,7 @@ def test_public_sample_pdfs_extract_and_compare_end_to_end():
 
     samples = Path(__file__).resolve().parents[2] / "public" / "samples"
     requirements_name = "requester-requirements-sample.pdf"
-    certificate_name = "certificate-sample.pdf"
+    certificate_name = "current-insurance-certificate.pdf"
     result = AnalysisService().run(
         IntakeRequest(
             account_role="reviewer",

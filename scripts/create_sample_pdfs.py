@@ -102,7 +102,7 @@ def page_header(canvas, doc):
     canvas.setFont("Helvetica-Bold", 9)
     canvas.drawString(0.62 * inch, height - 0.25 * inch, "PATHWAY ILLUMINATION")
     canvas.setFont("Helvetica", 8)
-    canvas.drawRightString(width - 0.62 * inch, height - 0.25 * inch, "PUBLIC DEMONSTRATION SAMPLE")
+    canvas.drawRightString(width - 0.62 * inch, height - 0.25 * inch, "PUBLIC DEMONSTRATION")
     canvas.setStrokeColor(LINE)
     canvas.line(0.62 * inch, 0.53 * inch, width - 0.62 * inch, 0.53 * inch)
     canvas.setFillColor(MUTED)
@@ -214,14 +214,14 @@ def build_certificate(path: Path):
         rightMargin=0.62 * inch,
         topMargin=0.7 * inch,
         bottomMargin=0.72 * inch,
-        title="Public Sample Certificate of Liability Insurance",
+        title="Current Insurance Certificate",
         author="Pathway Illumination",
     )
     story = [
         Spacer(1, 0.08 * inch),
-        Paragraph("Sample Certificate of Liability Insurance", s["title"]),
+        Paragraph("Current Insurance Certificate", s["title"]),
         Paragraph(
-            "A publicly available sample created for document-comparison testing. This is not an ACORD form or evidence of active coverage.",
+            "A fictional public demonstration document created for comparison testing. This is not an ACORD form or evidence of active coverage.",
             s["subtitle"],
         ),
     ]
@@ -274,7 +274,7 @@ def build_certificate(path: Path):
             coverage_table,
             Paragraph("Endorsement information", s["section"]),
             Paragraph(
-                "Juniper Ridge Facilities LLC is shown as an additional insured for ongoing operations. A separate waiver of subrogation endorsement is not shown in this sample.",
+                "Juniper Ridge Facilities LLC is shown as an additional insured for ongoing operations. A separate waiver of subrogation endorsement is not shown in this document.",
                 s["body"],
             ),
             Paragraph("Certificate holder", s["section"]),
@@ -304,7 +304,7 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     artifacts = {
         "requester-requirements-sample.pdf": build_requirements,
-        "certificate-sample.pdf": build_certificate,
+        "current-insurance-certificate.pdf": build_certificate,
     }
     for filename, builder in artifacts.items():
         output_path = OUTPUT_DIR / filename

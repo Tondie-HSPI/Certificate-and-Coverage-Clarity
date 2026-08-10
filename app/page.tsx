@@ -210,7 +210,7 @@ export default function Home() {
               <a href="/samples/requester-requirements-sample.pdf" download>
                 Download requirements
               </a>
-              <a href="/samples/certificate-sample.pdf" download>
+              <a href="/samples/current-insurance-certificate.pdf" download>
                 Download certificate
               </a>
             </div>
@@ -279,10 +279,15 @@ export default function Home() {
             <div className="optionalHeading">
               <span className="stepNumber">2</span>
               <div>
-                <strong>Add a second document</strong>
+                <strong>
+                  {isCoverageReview
+                    ? "Add contract or requirements"
+                    : "Add the current insurance certificate or policy"}
+                </strong>
                 <span>
-                  Optional. Add it to see whether the coverage aligns with the requester&apos;s
-                  requirements.
+                  {isCoverageReview
+                    ? "Optional. Add the requester requirements to define what the coverage evidence should be checked against."
+                    : "Optional. Add the current insurance certificate or policy to compare its evidence with the requester requirements."}
                 </span>
               </div>
             </div>
@@ -294,7 +299,7 @@ export default function Home() {
                 onChange={(event) => chooseFile(event.target.files?.[0] ?? null, "second")}
               />
               {secondFile?.name ??
-                `Choose ${isCoverageReview ? "contract or requirements" : "certificate or policy"}`}
+                `Choose ${isCoverageReview ? "contract or requirements" : "current insurance certificate or policy"}`}
             </label>
           </div>
 

@@ -146,7 +146,7 @@ class ApplicationSupportService:
             ),
             IntakeAnswer(question_id="data-access", answer="Yes." if profile.stores_customer_data else "Customer data or client system access not confirmed."),
             IntakeAnswer(question_id="revenue", answer=str(profile.revenue or "Revenue not provided.")),
-            IntakeAnswer(question_id="prior-claims", answer="No prior claims indicated."),
+            IntakeAnswer(question_id="prior-claims", answer="Claims history not provided; ask the applicant."),
             IntakeAnswer(question_id="coverage-requested", answer="Technology E&O / Professional Liability with cyber and privacy review."),
         ]
 
@@ -413,7 +413,7 @@ class ApplicationSupportService:
                 explanation = "COI collection helps show whether subcontractors maintain their own insurance and supports risk-transfer review."
                 risk_flag = None if profile.collects_subcontractor_cois else "Human review recommended because subcontractor insurance collection is not confirmed."
             elif question.question_id == "prior-claims":
-                suggested = intake_map.get("prior-claims", "No prior claims indicated.")
+                suggested = intake_map.get("prior-claims", "Claims history not provided; ask the applicant.")
                 source_field = "intake.prior-claims"
                 confidence = "Medium"
                 explanation = "Maps plain-English loss history response to prior claims questions."

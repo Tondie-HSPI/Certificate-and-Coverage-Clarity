@@ -269,6 +269,10 @@ The goal is not to automate judgment away. The goal is to reduce cognitive load,
 
 Coverage Clarity is decision support only. It does not provide legal or insurance advice. All outputs require review by a qualified human before use.
 
+## Original Technology E&O Portfolio Sample
+
+The application support example uses an [original technology E&O questionnaire](docs/original-technology-eo-sample.md) and a fictional business. No third-party insurer form is bundled with this demo. Its field mapping and reviewer prompts illustrate the same evidence-to-review workflow for a separate technology professional liability use case.
+
 ## Suggested Portfolio Framing
 
 This project is part of a broader portfolio focused on decision-support systems for operational teams working inside complex, regulated, or high-friction workflows.

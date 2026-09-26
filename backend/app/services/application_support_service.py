@@ -104,16 +104,10 @@ class ApplicationSupportService:
             return payload.source_documents
         return [
             SourceDocument(
-                document_id="chubb-digitech-small-business",
-                document_name="Chubb Digitech Technology E&O, Cyber and Privacy Short Form Application",
-                document_type="carrier_application",
-                source_note="Attached Tech E&O application reference",
-            ),
-            SourceDocument(
-                document_id="technology-professional-liability",
-                document_name="Technology Professional Liability Application",
-                document_type="carrier_application",
-                source_note="Attached professional liability application reference",
+                document_id="pathway-sample-tech-eo",
+                document_name="Original Technology E&O Portfolio Questionnaire",
+                document_type="sample_questionnaire",
+                source_note="Original portfolio example with fictional business data; no insurer form attached.",
             ),
         ]
 
@@ -169,19 +163,19 @@ class ApplicationSupportService:
 
     def _application_questions(self) -> list[ApplicationQuestion]:
         return [
-            ApplicationQuestion(question_id="applicant-name", section="Applicant Information", original_question="Full Name of Applicant / Applicant Name"),
-            ApplicationQuestion(question_id="website-url", section="Applicant Information", original_question="Website"),
-            ApplicationQuestion(question_id="business-operations", section="Nature of Operations", original_question="Describe nature of business operations, products or services in layperson terms."),
-            ApplicationQuestion(question_id="gross-revenue", section="Revenue", original_question="Projected annual gross revenues for the current year / Global Revenue"),
-            ApplicationQuestion(question_id="professional-services-percent", section="Professional Services", original_question="Describe all professional services performed and indicate the percentage of gross revenues derived from each activity."),
-            ApplicationQuestion(question_id="technology-revenue-mix", section="Technology Operations", original_question="Please indicate the applicable percentage of total revenue derived from each product or service."),
-            ApplicationQuestion(question_id="records-protected-information", section="Cyber and Privacy", original_question="Number of Records Containing Protected Information."),
-            ApplicationQuestion(question_id="internet-hosting-access", section="Cyber and Technology Services", original_question="Does the applicant provide internet access, online purchasing, web portal, web host, e-mail, chat room, online database or bulletin board services?"),
-            ApplicationQuestion(question_id="client-contracts", section="Contracts", original_question="Does the Applicant Firm use a written contract with client?"),
-            ApplicationQuestion(question_id="subcontractors", section="Subcontractors", original_question="Does the Applicant utilize the services of independent contractors or subcontractors?"),
-            ApplicationQuestion(question_id="subcontractor-percentage", section="Subcontractors", original_question="Percentage of gross revenues derived from professional services performed by independent contractors or subcontractors."),
-            ApplicationQuestion(question_id="subcontractor-cois", section="Subcontractors", original_question="Are certificates of insurance collected from subcontractors?"),
-            ApplicationQuestion(question_id="prior-claims", section="Loss History", original_question="Has the Applicant had claims, incidents, or similar insurance issues in the last five years?"),
+            ApplicationQuestion(question_id="applicant-name", section="Applicant Information", original_question="What is the business's legal name?"),
+            ApplicationQuestion(question_id="website-url", section="Applicant Information", original_question="What is the business website, if any?"),
+            ApplicationQuestion(question_id="business-operations", section="Nature of Operations", original_question="Explain the products and services the business offers in plain language."),
+            ApplicationQuestion(question_id="gross-revenue", section="Revenue", original_question="What is the expected annual revenue for the current year?"),
+            ApplicationQuestion(question_id="professional-services-percent", section="Professional Services", original_question="List the professional services offered and estimate each service's share of revenue."),
+            ApplicationQuestion(question_id="technology-revenue-mix", section="Technology Operations", original_question="How is revenue divided among technology products and services?"),
+            ApplicationQuestion(question_id="records-protected-information", section="Cyber and Privacy", original_question="Does the business hold sensitive customer records? If so, how many?"),
+            ApplicationQuestion(question_id="internet-hosting-access", section="Cyber and Technology Services", original_question="Does the business host software, process online transactions, or access client systems?"),
+            ApplicationQuestion(question_id="client-contracts", section="Contracts", original_question="Does the business use written agreements with clients?"),
+            ApplicationQuestion(question_id="subcontractors", section="Subcontractors", original_question="Does the business engage contractors to deliver client work?"),
+            ApplicationQuestion(question_id="subcontractor-percentage", section="Subcontractors", original_question="What share of client work or revenue involves contractors?"),
+            ApplicationQuestion(question_id="subcontractor-cois", section="Subcontractors", original_question="Does the business request proof of insurance from contractors?"),
+            ApplicationQuestion(question_id="prior-claims", section="Loss History", original_question="Have any claims or incidents arisen from the business's services? Give dates and details for reviewer follow-up."),
         ]
 
     def _paperwork_risk_flags(
@@ -378,7 +372,7 @@ class ApplicationSupportService:
                 suggested = "Customer records/data exposure indicated; exact number of protected records needs confirmation." if profile.stores_customer_data else "No stored customer data indicated in intake."
                 source_field = "business_profile.stores_customer_data"
                 confidence = "Low" if profile.stores_customer_data else "Medium"
-                explanation = "The Chubb form asks for records containing protected information. Intake can flag relevance but cannot safely infer the count."
+                explanation = "The sample questionnaire asks about sensitive customer records. Intake can flag relevance but cannot safely infer the count."
                 risk_flag = risk_by_field.get("data-access").reason if "data-access" in risk_by_field else None
             elif question.question_id == "internet-hosting-access":
                 suggested = "Follow-up needed on hosting, client system access, online services, and payment/data processing." if profile.stores_customer_data else "Not indicated from intake; confirm if any hosting, portal, online database, payment, or client system access exists."
@@ -396,7 +390,7 @@ class ApplicationSupportService:
                 suggested = "Yes, subcontractors used; percentage and controls need confirmation." if profile.uses_subcontractors else "No subcontractor use indicated."
                 source_field = "business_profile.uses_subcontractors"
                 confidence = "Medium"
-                explanation = "Maps subcontractor intake to the professional liability application subcontractor question."
+                explanation = "Maps contractor intake to the sample questionnaire's contractor question."
                 risk_flag = "Confirm subcontractor contracts and insurance requirements." if profile.uses_subcontractors else None
             elif question.question_id == "subcontractor-percentage":
                 if profile.uses_subcontractors and profile.subcontractor_percentage is not None:

@@ -14,8 +14,8 @@ from reportlab.platypus import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[2]
-OUTPUT_DIR = ROOT / "output" / "pdf"
+ROOT = Path(__file__).resolve().parents[1]
+OUTPUT_DIR = ROOT / "public" / "samples"
 
 NAVY = colors.HexColor("#102033")
 BLUE = colors.HexColor("#2563EB")
@@ -134,8 +134,8 @@ def build_requirements(path: Path):
     ]
 
     details = [
-        [Paragraph("Certificate holder", s["small"]), Paragraph("Juniper Ridge Facilities LLC", s["body"])],
-        [Paragraph("Address", s["small"]), Paragraph("100 Main Street, Rochester, NY 14604", s["body"])],
+        [Paragraph("Certificate holder", s["small"]), Paragraph("Example-Only Holder LLC", s["body"])],
+        [Paragraph("Address", s["small"]), Paragraph("000 Example Way, Sample City, NY 00000", s["body"])],
         [Paragraph("Requester-required wording", s["small"]), Paragraph("None", s["body"])],
     ]
     table = Table(details, colWidths=[1.75 * inch, 4.65 * inch])
@@ -163,11 +163,11 @@ def build_requirements(path: Path):
         ],
         [
             Paragraph("Additional Insured", s["body"]),
-            Paragraph("Juniper Ridge Facilities LLC must be included as an additional insured by endorsement.", s["body"]),
+            Paragraph("Example-Only Holder LLC must be included as an additional insured by endorsement.", s["body"]),
         ],
         [
             Paragraph("Waiver of Subrogation", s["body"]),
-            Paragraph("A waiver of subrogation in favor of Juniper Ridge Facilities LLC is required where permitted by law.", s["body"]),
+            Paragraph("A waiver of subrogation in favor of Example-Only Holder LLC is required where permitted by law.", s["body"]),
         ],
         [
             Paragraph("Umbrella or Excess Liability", s["body"]),
@@ -227,7 +227,7 @@ def build_certificate(path: Path):
     ]
 
     parties = [
-        [Paragraph("Producer", s["small"]), Paragraph("Lakeside Risk Partners", s["body"]), Paragraph("Insured", s["small"]), Paragraph("Summit Building Services LLC", s["body"])],
+        [Paragraph("Producer", s["small"]), Paragraph("Example-Only Producer", s["body"]), Paragraph("Insured", s["small"]), Paragraph("Example-Only Insured LLC", s["body"])],
         [Paragraph("Policy period", s["small"]), Paragraph("01/01/2026 to 01/01/2027", s["body"]), Paragraph("Certificate date", s["small"]), Paragraph("06/15/2026", s["body"])],
     ]
     parties_table = Table(parties, colWidths=[0.85 * inch, 2.35 * inch, 0.85 * inch, 2.35 * inch])
@@ -274,14 +274,14 @@ def build_certificate(path: Path):
             coverage_table,
             Paragraph("Endorsement information", s["section"]),
             Paragraph(
-                "Blanket additional insured wording applies. No specific additional insured entity is named. A waiver of subrogation in favor of Juniper Ridge Facilities LLC is shown where permitted by law.",
+                "Blanket additional insured wording applies. No specific additional insured entity is named. A waiver of subrogation in favor of Example-Only Holder LLC is shown where permitted by law.",
                 s["body"],
             ),
             Paragraph("Certificate holder", s["section"]),
         ]
     )
     holder = Table(
-        [[Paragraph("Juniper Ridge Facilities LLC<br/>100 Main Street<br/>Rochester, NY 14604", s["body"]) ]],
+        [[Paragraph("Example-Only Holder LLC<br/>000 Example Way<br/>Sample City, NY 00000", s["body"]) ]],
         colWidths=[6.4 * inch],
     )
     holder.setStyle(

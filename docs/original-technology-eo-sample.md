@@ -2,9 +2,9 @@
 
 This independent sample is a portfolio exercise for technology errors and omissions intake. Its wording and example business were created for this project. It is not an insurer application, quote, eligibility decision, or substitute for a current carrier form.
 
-## Fictional business: Northstar Systems Studio LLC
+## Fictional business: Example-Only Technology Business LLC
 
-Northstar builds internal workflow software for small businesses, implements client software, and provides training. Its sample intake mentions client system access and occasional subcontractors. All names, figures, and answers below are invented.
+The example business builds internal workflow software for small businesses, implements client software, and provides training. Its sample intake mentions client system access and occasional subcontractors. All names, figures, and answers below are invented.
 
 ## Sample intake questions
 
@@ -20,7 +20,7 @@ Northstar builds internal workflow software for small businesses, implements cli
 
 ## Fictional intake example
 
-- Business: Northstar Systems Studio LLC
+- Business: Example-Only Technology Business LLC
 - Services: consulting 40%, implementation 25%, custom software 20%, training 10%, hardware resale 5%
 - Revenue: $650,000 projected
 - Client systems: access is required for implementation

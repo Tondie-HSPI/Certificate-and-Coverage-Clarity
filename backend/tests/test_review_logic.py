@@ -20,7 +20,7 @@ def obligation(obligation_type: str, document_type: str, requirement: str, raw_s
 def decision(obligation_type: str, source_excerpt: str) -> DecisionItem:
     return DecisionItem(
         obligation_type=obligation_type,
-        requirement="Juniper Ridge Facilities LLC",
+        requirement="Example-Only Holder LLC",
         evidence_requirement="Evidence detected",
         state="met",
         search_terms=[obligation_type.lower()],
@@ -48,7 +48,7 @@ def test_certificate_holder_is_not_additional_insured_evidence():
     governed = GovernanceLayer().validate_outputs([
         decision(
             "Additional Insured",
-            "Contract: Juniper Ridge must be added\n\nEvidence: Certificate Holder: Juniper Ridge Facilities LLC",
+            "Contract: Example-Only Holder must be added\n\nEvidence: Certificate Holder: Example-Only Holder LLC",
         )
     ])[0]
 
@@ -60,7 +60,7 @@ def test_specific_endorsement_evidence_can_remain_supported():
     governed = GovernanceLayer().validate_outputs([
         decision(
             "Additional Insured",
-            "Contract: Juniper Ridge must be added\n\nEvidence: CG 20 26 endorsement attached; Juniper Ridge Facilities LLC is the scheduled organization",
+            "Contract: Example-Only Holder must be added\n\nEvidence: CG 20 26 endorsement attached; Example-Only Holder LLC is the scheduled organization",
         )
     ])[0]
 
@@ -71,7 +71,7 @@ def test_conflicting_evidence_is_routed_to_human_review():
     governed = GovernanceLayer().validate_outputs([
         decision(
             "Additional Insured",
-            "Contract: Juniper Ridge must be added\n\nEvidence: CG 20 26 endorsement attached but the endorsement is not included",
+            "Contract: Example-Only Holder must be added\n\nEvidence: CG 20 26 endorsement attached but the endorsement is not included",
         )
     ])[0]
 
@@ -296,8 +296,8 @@ def test_request_details_are_extracted_and_inserted_into_agent_email():
                 document_type="contract",
                 file_name="requirements.txt",
                 markdown=(
-                    "Certificate holder name: Northbridge Holdings LLC\n"
-                    "Certificate holder address: 100 Main Street, Rochester, NY 14604\n"
+                    "Certificate holder name: Example-Only Holdings LLC\n"
+                    "Certificate holder address: 000 Example Way, Sample City, NY 00000\n"
                     "Special wording: None\n"
                 ),
                 structured_json={},
@@ -313,8 +313,8 @@ def test_request_details_are_extracted_and_inserted_into_agent_email():
     email = service.build_email_draft(items, **details)
 
     assert email is not None
-    assert "Northbridge Holdings LLC" in email.body
-    assert "100 Main Street, Rochester, NY 14604" in email.body
+    assert "Example-Only Holdings LLC" in email.body
+    assert "000 Example Way, Sample City, NY 00000" in email.body
     assert "Wording required by requester: None" in email.body
 
 
@@ -382,7 +382,7 @@ def test_certificate_holder_name_label_is_not_treated_as_part_of_the_name():
                     document_type="contract",
                     file_name="requirements.txt",
                     content=(
-                        "Certificate holder name: Northbridge Development LLC\n"
+                        "Certificate holder name: Example-Only Development LLC\n"
                         "Waiver of subrogation is required."
                     ),
                 ),
@@ -390,7 +390,7 @@ def test_certificate_holder_name_label_is_not_treated_as_part_of_the_name():
                     document_id="certificate",
                     document_type="coi",
                     file_name="certificate.txt",
-                    content="CERTIFICATE HOLDER\nNorthbridge Development LLC",
+                    content="CERTIFICATE HOLDER\nExample-Only Development LLC",
                 ),
             ],
         )
@@ -399,7 +399,7 @@ def test_certificate_holder_name_label_is_not_treated_as_part_of_the_name():
     holder = next(item for item in result.items if item.obligation_type == "Certificate Holder")
     waiver = next(item for item in result.items if item.obligation_type == "Waiver of Subrogation")
 
-    assert holder.requirement == "Northbridge Development LLC"
+    assert holder.requirement == "Example-Only Development LLC"
     assert holder.state == "met"
     assert waiver.state == "missing"
 
@@ -536,7 +536,7 @@ def test_textract_table_rows_preserve_labels_and_values():
         cell("c4", 2, 2, ["w8", "w9", "w10"]),
         word("w1", "Certificate"),
         word("w2", "holder"),
-        word("w3", "Northbridge"),
+        word("w3", "Example-Only"),
         word("w4", "Development"),
         word("w5", "LLC"),
         word("w6", "General"),
@@ -547,7 +547,7 @@ def test_textract_table_rows_preserve_labels_and_values():
     ]
 
     assert TextractClient()._extract_table_rows(blocks) == [
-        "Certificate holder: Northbridge Development LLC",
+        "Certificate holder: Example-Only Development LLC",
         "General Liability | $1,000,000 each occurrence",
     ]
 
@@ -557,23 +557,23 @@ def test_textract_normalized_rows_compare_image_only_documents(monkeypatch):
     from app.schemas.analysis import IntakeRequest, UploadDescriptor
     from app.services.analysis_service import AnalysisService
 
-    requirements_text = """Certificate holder: Northbridge Development LLC
-Address: 100 Main Street, Rochester, NY 14604
+    requirements_text = """Certificate holder: Example-Only Development LLC
+Address: 000 Example Way, Sample City, NY 00000
 Requester-required wording: None
 Requirement | Requested evidence
 Commercial General Liability | $1,000,000 each occurrence and $2,000,000 general aggregate. Coverage must apply on an occurrence basis.
-Additional Insured | Northbridge Development LLC must be included as an additional insured by endorsement.
-Waiver of Subrogation | A waiver of subrogation in favor of Northbridge Development LLC is required where permitted by law.
+Additional Insured | Example-Only Development LLC must be included as an additional insured by endorsement.
+Waiver of Subrogation | A waiver of subrogation in favor of Example-Only Development LLC is required where permitted by law.
 Umbrella or Excess Liability | A limit of not less than $5,000,000 is required."""
     certificate_text = """Coverage | Policy number | Limits shown
 Commercial General Liability | CGL-2026-1042 | $1,000,000 each occurrence $2,000,000 general aggregate
 Umbrella Liability | UMB-2026-1042 | $5,000,000 each occurrence $5,000,000 aggregate
-Northbridge Development LLC is shown as an additional insured for ongoing operations.
+Example-Only Development LLC is shown as an additional insured for ongoing operations.
 A separate waiver of subrogation endorsement is not shown in this sample.
 Certificate holder
-Northbridge Development LLC
-100 Main Street
-Rochester, NY 14604
+Example-Only Development LLC
+000 Example Way
+Sample City, NY 00000
 Special wording: None"""
 
     service = AnalysisService()
@@ -629,7 +629,7 @@ Special wording: None"""
     for item in result.items:
         assert f"{item.obligation_type}: confirm" in result.email_draft.body
     assert "Umbrella / Excess: confirm $5,000,000" in result.email_draft.body
-    assert "Certificate holder name: Northbridge Development LLC" in result.email_draft.body
-    assert "Certificate holder address: 100 Main Street, Rochester, NY 14604" in result.email_draft.body
+    assert "Certificate holder name: Example-Only Development LLC" in result.email_draft.body
+    assert "Certificate holder address: 000 Example Way, Sample City, NY 00000" in result.email_draft.body
     assert "Wording required by requester: None" in result.email_draft.body
 

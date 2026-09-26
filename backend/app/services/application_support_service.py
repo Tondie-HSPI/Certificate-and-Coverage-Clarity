@@ -331,7 +331,7 @@ class ApplicationSupportService:
             risk_flag = None
 
             if question.question_id == "applicant-name":
-                suggested = profile.business_name or "Northbridge Digital Solutions"
+                suggested = profile.business_name or "Example-Only Technology Business"
                 source_field = "business_profile.business_name"
                 confidence = "High" if profile.business_name else "Medium"
                 explanation = "Maps the plain-English applicant name to the applicant information section."
